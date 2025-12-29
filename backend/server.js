@@ -14,15 +14,25 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// --- OTP Store (Temporary memory for verification) ---
+// --- OTP Store ---
 let otpStore = {}; 
 
-// --- WhatsApp Setup ---
+// --- WhatsApp Setup (Updated for Cloud/Render) ---
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: { 
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox'] 
+        args: [
+            '--no-sandbox', 
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--no-zygote'
+        ] 
+    },
+    // Yeh line Render par cache error khatam karegi
+    webVersionCache: {
+        type: 'remote',
+        remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-js/main/dist/wppconnect-wa.js',
     }
 });
 
@@ -82,20 +92,22 @@ const complaintStorage = multer.diskStorage({
 });
 const uploadComplaint = multer({ storage: complaintStorage });
 
-// --- MySQL Connection ---
+// --- MySQL Connection (Updated for Clever Cloud) ---
 const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: 'Umair@86247', 
-    database: 'hms_db',
+    host: 'bcn6nttd4iqcyvor6fen-mysql.services.clever-cloud.com',
+    user: 'urswjb8boqyaorkn',
+    password: 'kDCJigQkNUXvq7maTQ5Y', // Dashboard se password copy karke yahan likhein
+    database: 'bcn6nttd4iqcyvor6fen',
     port: 3306
 });
 
 db.connect(err => {
-    if (err) { console.error('❌ Connection Failed!', err.message); return; }
-    console.log('✅ Connected to Workbench Database!');
+    if (err) { 
+        console.error('❌ Connection Failed!', err.message); 
+        return; 
+    }
+    console.log('✅ Connected to Clever Cloud Database!');
     
-    // Disable Safe Updates for the current session to allow password updates
     db.query("SET SQL_SAFE_UPDATES = 0", (safeErr) => {
         if (safeErr) console.error("⚠️ Could not disable safe updates:", safeErr.message);
         else console.log("🛡️ Safe Updates Disabled for Session.");
@@ -152,7 +164,6 @@ app.post('/test-auto-billing', (req, res) => {
 });
 
 // --- 🔥 MULTI-ADMIN AUTHENTICATION ---
-
 app.post('/admin-login', (req, res) => {
     const { username, password } = req.body;
     const sql = "SELECT id, username, role FROM admins WHERE username = ? AND password = ?";
@@ -315,7 +326,6 @@ app.get('/complaints-count', (req, res) => {
 });
 
 // --- UPGRADED ADMIN: COMPLAINTS & STAFF ASSIGNMENT ---
-
 app.post('/add-complaint-with-photo', uploadComplaint.single('photo'), (req, res) => {
     const { resident_name, house_no, category, description } = req.body;
     const photo = req.file ? req.file.filename : null;
@@ -355,45 +365,31 @@ app.put('/update-complaint-status/:id', (req, res) => {
     });
 });
 
-// --- 🔥 STAFF MANAGEMENT ROUTES (ADMIN SIDE) ---
-
+// --- STAFF MANAGEMENT ROUTES ---
 app.get('/all-staff', (req, res) => {
     db.query("SELECT * FROM staff ORDER BY id DESC", (err, data) => {
-        if (err) {
-            console.error("❌ Fetch Staff Error:", err);
-            return res.status(500).json({ error: "Internal Server Error" });
-        }
+        if (err) return res.status(500).json({ error: "Internal Server Error" });
         res.status(200).json(data);
     });
 });
 
 app.post('/add-staff', (req, res) => {
     const { name, phone_no, category, password } = req.body;
-    if (!name || !phone_no || !category || !password) {
-        return res.status(400).json({ error: "All fields are required" });
-    }
     const sql = "INSERT INTO staff (name, phone_no, category, password) VALUES (?, ?, ?, ?)";
     db.query(sql, [name, phone_no, category, password], (err, result) => {
-        if (err) {
-            console.error("❌ Add Staff Error:", err);
-            return res.status(500).json({ error: "Database Error: " + err.message });
-        }
+        if (err) return res.status(500).json({ error: "Database Error" });
         res.status(200).json({ success: true, message: "Staff Added Successfully!", id: result.insertId });
     });
 });
 
 app.delete('/delete-staff/:id', (req, res) => {
     db.query("DELETE FROM staff WHERE id = ?", [req.params.id], (err) => {
-        if (err) {
-            console.error("❌ Delete Staff Error:", err);
-            return res.status(500).json({ error: "Could not delete staff" });
-        }
+        if (err) return res.status(500).json({ error: "Could not delete staff" });
         res.status(200).json({ success: true, message: "Staff Removed!" });
     });
 });
 
-// --- 🔥 STAFF PORTAL ROUTES ---
-
+// --- STAFF PORTAL ---
 app.post('/staff-login', (req, res) => {
     const { phone_no, password } = req.body;
     db.query("SELECT * FROM staff WHERE phone_no = ? AND password = ?", [phone_no, password], (err, result) => {
@@ -420,21 +416,7 @@ app.put('/complete-task/:id', uploadComplaint.single('completion_photo'), (req, 
     });
 });
 
-// --- ADMIN GRAPH STATS ---
-app.get('/graph-stats', (req, res) => {
-    const sql = `SELECT 
-            (SELECT COUNT(*) FROM bills WHERE payment_status = 'Paid') as paidBills,
-            (SELECT COUNT(*) FROM bills WHERE payment_status = 'Unpaid') as unpaidBills,
-            (SELECT COUNT(*) FROM complaints WHERE status = 'Pending' AND house_no != 'All') as pendingComp,
-            (SELECT COUNT(*) FROM complaints WHERE status = 'Resolved' AND house_no != 'All') as resolvedComp`;
-    db.query(sql, (err, result) => {
-        if (err) return res.status(500).json(err);
-        return res.json(result[0]);
-    });
-});
-
-// --- 🔥 NEW: EXPENSE MANAGEMENT ROUTES ---
-
+// --- EXPENSE MANAGEMENT ---
 app.post('/add-expense', (req, res) => {
     const { title, category, amount, expense_date, description } = req.body;
     const sql = "INSERT INTO expenses (title, category, amount, expense_date, description) VALUES (?, ?, ?, ?, ?)";
@@ -451,14 +433,7 @@ app.get('/all-expenses', (req, res) => {
     });
 });
 
-app.delete('/delete-expense/:id', (req, res) => {
-    db.query("DELETE FROM expenses WHERE id = ?", [req.params.id], (err) => {
-        if (err) return res.status(500).json(err);
-        res.json({ success: true, message: "Expense deleted!" });
-    });
-});
-
-// Financial summary for Dashboard (Profit/Loss)
+// --- FINANCIAL SUMMARY ---
 app.get('/financial-summary', (req, res) => {
     const sql = `
         SELECT 
@@ -474,83 +449,46 @@ app.get('/financial-summary', (req, res) => {
 });
 
 // --- RESIDENT ROUTES ---
-
-// 1. Send OTP
 app.post('/send-registration-otp', (req, res) => {
-    const house_no = req.body.house_no ? req.body.house_no.trim() : "";
     const phone_no = req.body.phone_no ? req.body.phone_no.trim() : "";
-    
-    // Exact match using LOWER for robustness
     const sql = "SELECT * FROM residents WHERE LOWER(house_no) = LOWER(?) AND phone_no = ?";
-    db.query(sql, [house_no, phone_no], (err, result) => {
-        if (err) return res.status(500).json({ success: false, error: err.message });
+    db.query(sql, [req.body.house_no, phone_no], (err, result) => {
+        if (err) return res.status(500).json({ success: false });
         if (result.length > 0) {
             const otp = Math.floor(100000 + Math.random() * 900000);
             otpStore[phone_no] = otp; 
-            const msg = `🔐 *HMS Account Setup*\n\nYour code is: *${otp}*\n\nPlease enter this to set your password.`;
-            sendWhatsApp(phone_no, msg);
-            res.json({ success: true, message: "OTP sent to WhatsApp!" });
+            sendWhatsApp(phone_no, `🔐 *HMS Code:* ${otp}`);
+            res.json({ success: true, message: "OTP Sent!" });
         } else {
-            res.status(404).json({ success: false, message: "Details match nahi huin record se." });
+            res.status(404).json({ success: false, message: "Not Found" });
         }
     });
 });
 
-// 2. Verify & Register
 app.post('/verify-and-register', (req, res) => {
-    const house_no = req.body.house_no ? req.body.house_no.trim() : "";
-    const phone_no = req.body.phone_no ? req.body.phone_no.trim() : "";
-    const otp = req.body.otp;
-    const password = req.body.password ? req.body.password.trim() : "";
-
-    if (otpStore[phone_no] && otpStore[phone_no] == otp) {
-        // Safe updates already disabled in connection init
-        const sql = "UPDATE residents SET password = ? WHERE LOWER(house_no) = LOWER(?) AND phone_no = ?";
-        db.query(sql, [password, house_no, phone_no], (err, result) => {
-            if (err) return res.status(500).json({ success: false, error: err.message });
-            
-            if (result.affectedRows === 0) {
-                return res.status(404).json({ success: false, message: "Database update failed. Check House/Phone again." });
-            }
-
+    const { phone_no, otp, password, house_no } = req.body;
+    if (otpStore[phone_no] == otp) {
+        db.query("UPDATE residents SET password = ? WHERE LOWER(house_no) = LOWER(?) AND phone_no = ?", [password, house_no, phone_no], (err) => {
+            if (err) return res.status(500).json({ success: false });
             delete otpStore[phone_no]; 
-            res.json({ success: true, message: "Password updated successfully!" });
+            res.json({ success: true });
         });
     } else {
-        res.status(400).json({ success: false, message: "Invalid or expired OTP." });
+        res.status(400).json({ success: false });
     }
 });
 
 app.post('/resident-login', (req, res) => {
-    const h = req.body.house_no ? req.body.house_no.trim() : "";
-    const p = req.body.password ? req.body.password.trim() : "";
-    
-    // Case-insensitive house number check
     const sql = "SELECT * FROM residents WHERE LOWER(house_no) = LOWER(?) AND password = ?";
-    db.query(sql, [h, p], (err, result) => {
+    db.query(sql, [req.body.house_no, req.body.password], (err, result) => {
         if (err) return res.status(500).json(err);
         if (result.length > 0) res.json({ success: true, user: result[0] });
-        else res.status(401).json({ success: false, message: "Invalid House No or Password" });
-    });
-});
-
-app.get('/my-bills/:resident_id', (req, res) => {
-    db.query("SELECT * FROM bills WHERE resident_id = ? ORDER BY created_at DESC", [req.params.resident_id], (err, data) => {
-        if (err) return res.status(500).json(err);
-        res.json(data);
-    });
-});
-
-app.get('/my-complaints/:house_no', (req, res) => {
-    const house_no = req.params.house_no;
-    const sql = "SELECT * FROM complaints WHERE house_no = ? OR house_no = 'All' ORDER BY created_at DESC";
-    db.query(sql, [house_no], (err, data) => {
-        if (err) return res.status(500).json(err);
-        res.json(data);
+        else res.status(401).json({ success: false });
     });
 });
 
 // --- SERVER START ---
-app.listen(5000, () => {
-    console.log("🚀 Server running on http://localhost:5000");
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
 });
