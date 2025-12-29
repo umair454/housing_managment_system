@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HMS | Staff Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+        }
+
+        body { 
+            background: var(--bg); 
+            color: #f8fafc; 
+            font-family: 'Poppins', sans-serif; 
+            margin: 0;
+            padding: 0;
+            background-image: radial-gradient(circle at top right, rgba(59, 130, 246, 0.1), transparent),
+                              radial-gradient(circle at bottom left, rgba(16, 185, 129, 0.05), transparent);
+            min-height: 100vh;
+        }
+
+        .staff-container { max-width: 500px; margin: 0 auto; padding: 20px; }
+
+        /* --- Stylish Login Box --- */
+        .login-box { 
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            padding: 40px 30px; 
+            border-radius: 24px; 
+            text-align: center; 
+            margin-top: 80px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .login-box h2 { font-size: 28px; margin-bottom: 10px; font-weight: 600; }
+        .login-icon { font-size: 50px; color: var(--primary); margin-bottom: 20px; }
+
+        /* --- Professional Task Cards --- */
+        .task-card { 
+            background: var(--card-bg); 
+            backdrop-filter: blur(12px); 
+            border: 1px solid rgba(255, 255, 255, 0.08); 
+            border-radius: 20px; 
+            padding: 20px; 
+            margin-bottom: 20px;
+            transition: transform 0.3s ease;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+        }
+
+        .task-card:hover { transform: translateY(-5px); }
+
+        .task-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        
+        .house-badge { 
+            background: rgba(59, 130, 246, 0.2); 
+            color: var(--primary);
+            padding: 5px 12px; 
+            border-radius: 10px; 
+            font-size: 12px; 
+            font-weight: 600;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .task-body h3 { margin: 0; font-size: 18px; color: #fff; }
+        .task-body p { color: #94a3b8; font-size: 14px; line-height: 1.5; margin: 10px 0; }
+
+        /* --- Form Elements --- */
+        input { 
+            width: 100%; 
+            padding: 14px; 
+            margin: 12px 0; 
+            background: rgba(15, 23, 42, 0.8); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            color: white; 
+            border-radius: 12px; 
+            box-sizing: border-box;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+
+        .login-btn { 
+            background: linear-gradient(135deg, var(--primary), #1d4ed8);
+            color: white; border: none; padding: 14px; border-radius: 12px;
+            font-weight: 600; cursor: pointer; transition: 0.3s; width: 100%;
+        }
+
+        .upload-btn { 
+            background: linear-gradient(135deg, var(--success), #059669); 
+            color: white; border: none; padding: 12px; border-radius: 12px; 
+            width: 100%; margin-top: 15px; cursor: pointer; font-weight: 600;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            transition: 0.3s;
+        }
+
+        .upload-btn:hover { filter: brightness(1.1); transform: scale(1.02); }
+
+        /* --- Custom File Upload --- */
+        .file-input-label {
+            display: block;
+            background: rgba(15, 23, 42, 0.5);
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            text-align: center;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        .file-input-label:hover { border-color: var(--primary); color: #fff; }
+
+        .logout-btn {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            padding: 8px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+
+        .logout-btn:hover { background: var(--danger); color: #fff; }
+
+        #dashboardSection header {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="staff-container">
+        <div id="loginSection" class="login-box">
+            <div class="login-icon"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+            <h2>Staff Portal</h2>
+            <p style="color: #94a3b8; font-size: 14px; margin-bottom: 20px;">Secure access for maintenance team</p>
+            <input type="text" id="phone" placeholder="Phone Number">
+            <input type="password" id="pass" placeholder="Password">
+            <button onclick="login()" class="login-btn">Login to Dashboard</button>
+        </div>
+
+        <div id="dashboardSection" style="display: none;">
+            <header style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h2 id="staffWelcome" style="font-size: 18px; margin: 0; color: #fff;">Hello, Staff</h2>
+                    <p style="margin: 0; font-size: 12px; color: var(--primary); font-weight: 600;">ASSIGNED TASKS</p>
+                </div>
+                <button onclick="logout()" class="logout-btn"><i class="fa fa-sign-out"></i></button>
+            </header>
+
+            <div id="tasksList">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:5000";
+        let currentStaff = JSON.parse(localStorage.getItem("hmsStaff"));
+
+        if (currentStaff) {
+            showDashboard();
+        }
+
+        async function login() {
+            const phone = document.getElementById("phone").value;
+            const pass = document.getElementById("pass").value;
+
+            if(!phone || !pass) { alert("Please fill all fields"); return; }
+
+            try {
+                const res = await fetch(`${API_URL}/staff-login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone_no: phone, password: pass })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    localStorage.setItem("hmsStaff", JSON.stringify(data.staff));
+                    currentStaff = data.staff;
+                    showDashboard();
+                } else {
+                    alert("Invalid Credentials!");
+                }
+            } catch (err) { alert("Server Error!"); }
+        }
+
+        function showDashboard() {
+            document.getElementById("loginSection").style.display = "none";
+            document.getElementById("dashboardSection").style.display = "block";
+            document.getElementById("staffWelcome").innerText = `Welcome, ${currentStaff.name}`;
+            loadTasks();
+        }
+
+        async function loadTasks() {
+            const res = await fetch(`${API_URL}/staff-tasks/${currentStaff.name}`);
+            const tasks = await res.json();
+            const container = document.getElementById("tasksList");
+            container.innerHTML = "";
+
+            if (tasks.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center; margin-top:80px; opacity:0.5;">
+                        <i class="fa-solid fa-circle-check" style="font-size:60px; color:var(--success);"></i>
+                        <p style="margin-top:15px;">All caught up! No pending tasks.</p>
+                    </div>`;
+                return;
+            }
+
+            tasks.forEach(task => {
+                const date = new Date(task.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short' });
+                container.innerHTML += `
+                    <div class="task-card">
+                        <div class="task-header">
+                            <span class="house-badge"><i class="fa-solid fa-house-user"></i> House: ${task.house_no}</span>
+                            <small style="color:#64748b; font-weight:600;">${date}</small>
+                        </div>
+                        <div class="task-body">
+                            <h3>${task.category}</h3>
+                            <p>${task.description}</p>
+                        </div>
+                        
+                        <div style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px;">
+                            <label class="file-input-label" for="proof-${task.id}">
+                                <i class="fa-solid fa-camera"></i><br>
+                                <span id="file-name-${task.id}">Tap to take work photo</span>
+                            </label>
+                            <input type="file" id="proof-${task.id}" accept="image/*" style="display:none;" 
+                                   onchange="document.getElementById('file-name-${task.id}').innerText = 'Photo Selected ✅'">
+                            
+                            <button onclick="completeTask(${task.id})" class="upload-btn">
+                                <i class="fa-solid fa-circle-check"></i> Submit & Finish
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        async function completeTask(id) {
+            const fileInput = document.getElementById(`proof-${id}`);
+            if (!fileInput.files[0]) {
+                alert("Please take a photo of the fixed issue first!");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('completion_photo', fileInput.files[0]);
+
+            try {
+                const res = await fetch(`${API_URL}/complete-task/${id}`, {
+                    method: 'PUT',
+                    body: formData
+                });
+                if (res.ok) {
+                    alert("Great job! Work proof submitted to Admin.");
+                    loadTasks();
+                }
+            } catch (err) { alert("Error updating task!"); }
+        }
+
+        function logout() {
+            localStorage.removeItem("hmsStaff");
+            location.reload();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HMS | Secure Login</title>
+    <link rel="stylesheet" href="../css/login.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="../js/auth.js"></script>
+</body>
+</head>
+<body>
+    <div class="background-animation">
+        <div class="circle"></div>
+        <div class="circle"></div>
+    </div>
+
+    <div class="login-wrapper">
+        <div class="glass-card">
+            <div class="logo-area">
+                <span class="logo-icon">🏠</span>
+                <h1>HMS<span>Hub</span></h1>
+            </div>
+            
+            <p class="subtitle">Enter your credentials to manage your home</p>
+
+            <form id="loginForm">
+                <div class="input-group">
+                    <label>Email Address</label>
+                    <input type="email" id="email" placeholder="admin@hms.com" required>
+                </div>
+                
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="login-btn">
+                    <span>Login to Dashboard</span>
+                    <div class="btn-glow"></div>
+                </button>
+            </form>
+
+            <div class="login-footer">
+                <a href="#">Forgot Password?</a>
+                <span>|</span>
+                <a href="#">Contact Support</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

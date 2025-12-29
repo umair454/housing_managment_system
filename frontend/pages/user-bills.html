@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Bills | Resident Portal</title>
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <style>
+        :root { --primary: #2563eb; }
+        .sidebar { background: #1e3a8a; }
+        .status-unpaid { color: #ef4444; font-weight: bold; }
+        .status-paid { color: #10b981; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="logo"><h2>HMS<span>User</span></h2></div>
+            <nav>
+                <ul>
+                    <li onclick="location.href='resident-dashboard.html'" style="cursor:pointer;">My Dashboard</li>
+                    <li class="active">My Bills</li>
+                    <li onclick="location.href='user-complaints.html'" style="cursor:pointer;">Complaints</li>
+                    <li onclick="logoutUser()" style="cursor:pointer; color:#fda4af;">Logout</li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header>
+                <h1>Billing History</h1>
+            </header>
+            <div class="table-container">
+                <table id="allBillsTable">
+                    <thead>
+                        <tr>
+                            <th>Bill Month</th>
+                            <th>Amount</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:5000";
+        const userData = JSON.parse(localStorage.getItem("residentUser"));
+
+        async function loadBills() {
+            const res = await fetch(`${API_URL}/my-bills/${userData.id}`);
+            const bills = await res.json();
+            const tableBody = document.querySelector("#allBillsTable tbody");
+            tableBody.innerHTML = "";
+
+            bills.forEach(bill => {
+                const row = tableBody.insertRow();
+                row.innerHTML = `
+                    <td>${bill.bill_month}</td>
+                    <td>Rs. ${Number(bill.amount).toLocaleString()}</td>
+                    <td>${new Date(bill.due_date).toLocaleDateString()}</td>
+                    <td><span class="status-${bill.payment_status.toLowerCase()}">${bill.payment_status}</span></td>
+                    <td><button class="edit-btn" onclick='printUserBill(${JSON.stringify(bill)})'>Print</button></td>
+                `;
+            });
+        }
+
+        function printUserBill(bill) {
+            const win = window.open('', '', 'height=700,width=900');
+            win.document.write(`<html><body><h2 style="color:#2563eb">HMS HUB - Bill Receipt</h2><p><b>Name:</b> ${userData.name}</p><p><b>Month:</b> ${bill.bill_month}</p><p><b>Amount:</b> Rs. ${bill.amount}</p><button onclick="window.print()">Print</button></body></html>`);
+            win.document.close();
+        }
+
+        function logoutUser() { localStorage.removeItem("residentUser"); window.location.href="resident-login.html"; }
+        window.onload = loadBills;
+    </script>
+</body>
+</html>

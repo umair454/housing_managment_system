@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HMS | Billing & Financials</title>
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        .action-btns { display: flex; gap: 10px; }
+        .report-btn { 
+            background: linear-gradient(135deg, #ff416c, #ff4b2b); 
+            color: white; border: none; padding: 10px 20px; 
+            border-radius: 10px; cursor: pointer; font-weight: 600;
+            display: flex; align-items: center; gap: 8px;
+        }
+        /* Excel Button Style */
+        .excel-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white; border: none; padding: 10px 20px; 
+            border-radius: 10px; cursor: pointer; font-weight: 600;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .expense-btn {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white; border: none; padding: 10px 20px; 
+            border-radius: 10px; cursor: pointer; font-weight: 600;
+        }
+        @media (max-width: 768px) {
+            header { flex-direction: column; gap: 15px; align-items: flex-start !important; }
+            .action-btns { width: 100%; flex-direction: column; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="logo"><h2>HMS<span>Hub</span></h2></div>
+            <nav>
+                <ul>
+                    <li id="nav-dashboard" class="active" onclick="location.href='dashboard.html'"><i class="fa fa-chart-line"></i> Dashboard</li>
+                    <li id="nav-residents" onclick="location.href='residents.html'"><i class="fa fa-users"></i> Residents</li>
+                    <li id="nav-billing" onclick="location.href='billing.html'"><i class="fa fa-money-bill-wave"></i> Billing</li>
+                    <li id="nav-expenses" onclick="location.href='expenses.html'"><i class="fa fa-wallet"></i> Expenses</li>
+                    <li id="nav-complaints" onclick="location.href='complaints.html'"><i class="fa fa-headset"></i> Complaints</li>
+                    <li id="nav-security" onclick="location.href='security.html'"><i class="fa fa-shield-halved"></i> Security Logs</li>
+                    <li id="nav-staff" onclick="location.href='staff-mgmt.html'"><i class="fa fa-user-gear"></i> Staff Management</li>
+                    <li id="nav-admin" onclick="location.href='manage-admins.html'"><i class="fa fa-user-shield"></i> Admin Settings</li>
+                    <li onclick="logout()"><i class="fa fa-sign-out-alt"></i> Logout</li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <div>
+                    <h1 style="margin:0;">Financial Management</h1>
+                    <p style="color:#64748b; font-size: 14px;">Society income aur bills ki report nikalien</p>
+                </div>
+                <div class="action-btns">
+                    <button onclick="downloadExcelReport()" class="excel-btn">
+                        <i class="fa fa-file-excel"></i> Excel Report
+                    </button>
+                    <button onclick="downloadPDFReport()" class="report-btn">
+                        <i class="fa fa-file-pdf"></i> PDF Report
+                    </button>
+                </div>
+            </header>
+
+            <section class="recent-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                    <h2 style="margin:0;">Resident Invoices</h2>
+                    <input type="text" id="billSearch" placeholder="Search by name or house..." onkeyup="filterBills()"
+                           style="padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white; width: 280px; outline: none;">
+                </div>
+
+                <div class="table-container">
+                    <table id="billingTable">
+                        <thead>
+                            <tr>
+                                <th>Resident Name</th>
+                                <th>House No</th>
+                                <th>Amount</th>
+                                <th>Month</th>
+                                <th>Due Date</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="billingTableBody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // --- 📊 EXCEL REPORT LOGIC ---
+        async function downloadExcelReport() {
+            try {
+                const response = await fetch('http://localhost:5000/all-bills');
+                const bills = await response.json();
+
+                if (!bills || bills.length === 0) {
+                    alert("Export karne ke liye koi data nahi hai!");
+                    return;
+                }
+
+                // Data ko saaf karke Excel format mein dalna
+                const cleanedData = bills.map(b => ({
+                    "Resident Name": b.name,
+                    "House Number": b.house_no,
+                    "Bill Amount": `Rs. ${b.amount}`,
+                    "Billing Month": b.bill_month,
+                    "Due Date": b.due_date,
+                    "Payment Status": b.payment_status
+                }));
+
+                const worksheet = XLSX.utils.json_to_sheet(cleanedData);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Financials");
+
+                XLSX.writeFile(workbook, `HMS_Financial_Report_${Date.now()}.xlsx`);
+            } catch (err) {
+                alert("Excel report download karne mein error aaya!");
+            }
+        }
+
+        // --- 📄 PDF REPORT LOGIC (Existing) ---
+        async function downloadPDFReport() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFontSize(22);
+            doc.setTextColor(30, 58, 138); 
+            doc.text("HMS Hub - Financial Report", 14, 20);
+            doc.setFontSize(10);
+            doc.setTextColor(100);
+            doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 28);
+            doc.line(14, 32, 196, 32);
+
+            try {
+                const response = await fetch('http://localhost:5000/all-bills');
+                const bills = await response.json();
+
+                doc.autoTable({
+                    startY: 40,
+                    head: [['Resident', 'House', 'Amount', 'Month', 'Status']],
+                    body: bills.map(b => [b.name, b.house_no, `Rs. ${b.amount}`, b.bill_month, b.payment_status]),
+                    headStyles: { fillStyle: [30, 58, 138], textColor: [255, 255, 255] },
+                    alternateRowStyles: { fillColor: [245, 247, 250] }
+                });
+
+                doc.save(`Society_Financial_Report_${Date.now()}.pdf`);
+            } catch (err) {
+                alert("Error generating PDF.");
+            }
+        }
+    </script>
+
+    <script src="../js/billing.js"></script>
+    <script src="../js/authchecks.js"></script>
+</body>
+</html>

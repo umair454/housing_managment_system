@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HMS | Residents Directory</title>
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #3b82f6;
+            --dark-card: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar {
+            background: #1e3a8a;
+        }
+
+        .table-container {
+            background: var(--dark-card);
+            border-radius: 12px;
+            padding: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content.glass-card {
+            background: #1a1f3c !important;
+            width: 95%;
+            max-width: 650px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border-radius: 20px !important;
+            padding: 30px;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5) !important;
+            border: 1px solid var(--border) !important;
+        }
+
+        .modal-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb {
+            background: var(--secondary);
+            border-radius: 10px;
+        }
+
+        .modal-content h2 {
+            color: #00d2ff;
+            font-weight: 600;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        #addResidentForm,
+        #quickBillForm {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+
+            #addResidentForm,
+            #quickBillForm {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-group input,
+        .input-group select,
+        .input-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.03) !important;
+            border: 1px solid #303651 !important;
+            border-radius: 10px !important;
+            color: white !important;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .file-input-label {
+            display: block;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, #2563eb, #3b82f6) !important;
+            border-radius: 10px !important;
+            font-weight: 600 !important;
+            height: 45px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease !important;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(37, 99, 235, 0.4);
+        }
+
+        .cnic-display-flex {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .cnic-img {
+            border: 2px solid #303651;
+            border-radius: 12px;
+            max-width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="logo">
+                <h2>HMS<span>Hub</span></h2>
+            </div>
+            <nav>
+                <ul>
+                    <li id="nav-dashboard" class="active" onclick="location.href='dashboard.html'"><i class="fa fa-chart-line"></i> Dashboard</li>
+                    <li id="nav-residents" onclick="location.href='residents.html'"><i class="fa fa-users"></i> Residents</li>
+                    <li id="nav-billing" onclick="location.href='billing.html'"><i class="fa fa-money-bill-wave"></i> Billing</li>
+                    <li id="nav-expenses" onclick="location.href='expenses.html'"><i class="fa fa-wallet"></i> Expenses</li>
+                    <li id="nav-complaints" onclick="location.href='complaints.html'"><i class="fa fa-headset"></i> Complaints</li>
+                    <li id="nav-security" onclick="location.href='security.html'"><i class="fa fa-shield-halved"></i> Security Logs</li>
+                    <li id="nav-staff" onclick="location.href='staff-mgmt.html'"><i class="fa fa-user-gear"></i> Staff Management</li>
+                    <li id="nav-admin" onclick="location.href='manage-admins.html'"><i class="fa fa-user-shield"></i> Admin Settings</li>
+                    <li onclick="logout()"><i class="fa fa-sign-out-alt"></i> Logout</li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <div>
+                    <h1 style="font-weight: 600;">Residents Directory</h1>
+                    <p style="color: #888;">Manage society members and their profiles.</p>
+                </div>
+                <button id="openModalBtn" class="login-btn" style="width: auto; padding: 0 25px;">
+                    <i class="fa fa-plus-circle"></i> Add Resident
+                </button>
+            </header>
+
+            <section class="recent-section">
+                <div style="margin-bottom: 25px; position: relative; max-width: 450px;">
+                    <i class="fa fa-search" style="position: absolute; left: 15px; top: 15px; color: #888;"></i>
+                    <input type="text" id="searchInput" placeholder="Search residents..." onkeyup="filterTable()"
+                        style="padding: 12px 12px 12px 45px; border-radius: 10px; width: 100%; background: var(--dark-card); border: 1px solid var(--border); color: white; outline: none;">
+                </div>
+
+                <div class="table-container">
+                    <table id="residentTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>House No</th>
+                                <th>Phone</th>
+                                <th>CNIC</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="residentModal" class="modal">
+        <div class="modal-content glass-card">
+            <span class="close-btn"
+                style="position: absolute; right: 20px; top: 20px; font-size: 25px; cursor: pointer;"
+                onclick="resetForm()">&times;</span>
+            <h2 id="modalTitle"><i class="fa fa-user-plus"></i> Resident Registration</h2>
+            <p style="text-align: center; color: #888; font-size: 13px; margin-bottom: 25px;">Enter correct details as
+                per official documents</p>
+
+            <form id="addResidentForm" enctype="multipart/form-data">
+                <div class="input-group">
+                    <label class="file-input-label">Full Name</label>
+                    <input type="text" id="resName" placeholder="e.g. Umair Afridi" required>
+                </div>
+                <div class="input-group">
+                    <label class="file-input-label">House Number</label>
+                    <input type="text" id="resHouse" placeholder="e.g. B-12" required>
+                </div>
+                <div class="input-group">
+                    <label class="file-input-label">WhatsApp Number</label>
+                    <input type="text" id="resPhone" placeholder="03XXXXXXXXX" required>
+                </div>
+                <div class="input-group">
+                    <label class="file-input-label">CNIC Number</label>
+                    <input type="text" id="resCNIC" placeholder="42XXX-XXXXXXX-X" required>
+                </div>
+
+                <div class="input-group" style="grid-column: span 2;">
+                    <label class="file-input-label">Monthly Maintenance Amount (Rs.)</label>
+                    <input type="number" id="resMonthlyBill" placeholder="e.g. 15000" value="15000" required>
+                </div>
+
+                <div class="input-group">
+                    <label class="file-input-label"><i class="fa fa-image"></i> CNIC Front Copy</label>
+                    <input type="file" id="cnicFront" accept="image/*">
+                </div>
+                <div class="input-group">
+                    <label class="file-input-label"><i class="fa fa-image"></i> CNIC Back Copy</label>
+                    <input type="file" id="cnicBack" accept="image/*">
+                </div>
+                <div class="input-group" style="grid-column: span 2;">
+                    <label class="file-input-label">Emergency Contact Details</label>
+                    <input type="text" id="resEmergency" placeholder="Name & Mobile Number">
+                </div>
+                <div class="input-group" style="grid-column: span 2;">
+                    <label class="file-input-label">Permanent Address</label>
+                    <textarea id="resAddress" placeholder="Enter complete address..." rows="2"></textarea>
+                </div>
+                <div class="input-group" style="grid-column: span 2;">
+                    <label class="file-input-label">Membership Status</label>
+                    <select id="resStatus">
+                        <option value="Paid">Active (Paid)</option>
+                        <option value="Unpaid" selected>Pending (Unpaid)</option>
+                    </select>
+                </div>
+                <button type="submit" class="login-btn" style="grid-column: span 2; margin-top: 15px;">
+                    <i class="fa fa-save"></i> Save Resident Profile
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="quickBillModal" class="modal">
+        <div class="modal-content glass-card" style="max-width: 500px;">
+            <span class="close-btn"
+                style="position: absolute; right: 20px; top: 20px; font-size: 25px; cursor: pointer;"
+                onclick="document.getElementById('quickBillModal').style.display='none'">&times;</span>
+            <h2 id="quickBillTitle"><i class="fa fa-file-invoice-dollar"></i> Generate Quick Bill</h2>
+            <p id="billForName" style="text-align: center; color: #888; font-size: 13px; margin-bottom: 25px;"></p>
+
+            <form id="quickBillForm">
+                <input type="hidden" id="quickBillResId">
+                <div class="input-group" style="grid-column: span 2;">
+                    <label class="file-input-label">Amount (Rs.)</label>
+                    <input type="number" id="quickBillAmount" value="15000" required>
+                </div>
+                <div class="input-group">
+                    <label class="file-input-label">Billing Month</label>
+                    <input type="text" id="quickBillMonth" required>
+                </div>
+                <div class="input-group">
+                    <label class="file-input-label">Due Date</label>
+                    <input type="date" id="quickBillDate" required>
+                </div>
+                <button type="submit" class="login-btn"
+                    style="grid-column: span 2; margin-top: 15px; background: linear-gradient(135deg, #f59e0b, #d97706) !important;">
+                    <i class="fa fa-paper-plane"></i> Generate & Send WhatsApp
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="viewCnicModal" class="modal">
+        <div class="modal-content glass-card" style="max-width: 600px;">
+            <span class="close-btn" onclick="document.getElementById('viewCnicModal').style.display='none'"
+                style="position: absolute; right: 20px; top: 20px; font-size: 25px; cursor: pointer;">&times;</span>
+            <h2 id="viewResName" style="color: #00d2ff;"><i class="fa fa-id-card"></i> Resident Documents</h2>
+            <hr style="border: 0; border-top: 1px solid #303651; margin: 20px 0;">
+            <div class="cnic-display-flex">
+                <div style="flex: 1; min-width: 250px;">
+                    <p style="color: #888; margin-bottom: 10px; text-align: center;">Front Side</p>
+                    <img id="frontPreview" class="cnic-img" src="" alt="Front">
+                </div>
+                <div style="flex: 1; min-width: 250px;">
+                    <p style="color: #888; margin-bottom: 10px; text-align: center;">Back Side</p>
+                    <img id="backPreview" class="cnic-img" src="" alt="Back">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script src="../js/residents.js"></script>
+    <script src="../js/auth-check.js"></script>
+    <script src="../js/auth-check.js"></script>
+</body>
+
+</html>

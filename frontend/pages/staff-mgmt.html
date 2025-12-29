@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Management | HMS Hub</title>
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #3b82f6; --danger: #ef4444; --glass: rgba(255, 255, 255, 0.05); --sidebar-width: 260px; }
+        body { font-family: 'Poppins', sans-serif; background: #0f172a; color: white; margin: 0; display: flex; }
+        .sidebar { width: var(--sidebar-width); background: #1e3a8a; height: 100vh; position: fixed; padding: 20px; box-sizing: border-box; }
+        .container { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); min-height: 100vh; }
+        .main-content { padding: 40px; }
+        
+        .add-staff-btn { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3); }
+        .table-container { background: var(--glass); backdrop-filter: blur(10px); border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); padding: 25px; margin-top: 30px; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 15px; color: #94a3b8; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 14px; }
+        
+        .cat-badge { padding: 4px 12px; border-radius: 8px; font-size: 11px; font-weight: 600; }
+        .badge-security { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
+        .badge-other { background: rgba(59, 130, 246, 0.1); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.2); }
+        
+        .pass-code { font-family: monospace; background: #1e293b; padding: 2px 6px; border-radius: 4px; color: #f472b6; }
+        .modal-content { background: #1e293b; border-radius: 24px; padding: 40px; max-width: 450px; border: 1px solid rgba(255,255,255,0.1); position: relative; margin: 10% auto; }
+        input, select { width: 100%; padding: 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; outline: none; box-sizing: border-box; margin-bottom: 15px; }
+        .login-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 600; cursor: pointer; }
+        
+        .remove-btn { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo"><h2>HMS<span>Hub</span></h2></div>
+        <nav>
+            <ul>
+                <li id="nav-dashboard" onclick="location.href='dashboard.html'"><i class="fa fa-chart-line"></i> Dashboard</li>
+                <li id="nav-residents" onclick="location.href='residents.html'"><i class="fa fa-users"></i> Residents</li>
+                <li id="nav-billing" onclick="location.href='billing.html'"><i class="fa fa-money-bill-wave"></i> Billing</li>
+                <li id="nav-expenses" onclick="location.href='expenses.html'"><i class="fa fa-wallet"></i> Expenses</li>
+                <li id="nav-complaints" onclick="location.href='complaints.html'"><i class="fa fa-headset"></i> Complaints</li>
+                <li id="nav-security" onclick="location.href='security.html'"><i class="fa fa-shield-halved"></i> Security Logs</li>
+                <li id="nav-staff" class="active" onclick="location.href='staff-mgmt.html'"><i class="fa fa-user-gear"></i> Staff Management</li>
+                <li id="nav-admin" onclick="location.href='manage-admins.html'"><i class="fa fa-user-shield"></i> Admin Settings</li>
+                <li onclick="logout()"><i class="fa fa-sign-out-alt"></i> Logout</li>
+            </ul>
+        </nav>
+    </aside>
+
+    <div class="container">
+        <div class="main-content">
+            <header style="display:flex; justify-content:space-between; align-items: center;">
+                <div>
+                    <h1>Staff & Guard Management</h1>
+                    <p style="color: #64748b; font-size: 14px;">Register service workers and Gate Security guards</p>
+                </div>
+                <button onclick="document.getElementById('staffModal').style.display='block'" class="add-staff-btn">
+                    <i class="fa fa-shield-halved"></i> Add Staff / Guard
+                </button>
+            </header>
+
+            <div id="staffModal" class="modal" style="display:none; position:fixed; z-index:100; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.8); backdrop-filter:blur(5px);">
+                <div class="modal-content">
+                    <span style="float:right; cursor:pointer; font-size: 24px; color:#94a3b8;" onclick="document.getElementById('staffModal').style.display='none'">&times;</span>
+                    <h2 style="margin-top:0;">Register New Employee</h2>
+                    <p style="color:#94a3b8; font-size:13px; margin-bottom:20px;">For Guards: The Phone Number will be their Login ID.</p>
+                    <form id="staffForm">
+                        <input type="text" id="sName" placeholder="Employee Full Name" required>
+                        <input type="text" id="sPhone" placeholder="Phone Number (Login ID)" required>
+                        <select id="sCat" required onchange="toggleGuardInfo()">
+                            <option value="" disabled selected>Select Category / Role</option>
+                            <option value="Security">Security Guard (Gate Access)</option>
+                            <option value="Plumber">Plumber</option>
+                            <option value="Electrician">Electrician</option>
+                            <option value="Cleaner">Cleaner</option>
+                        </select>
+                        <div id="guardAlert" style="display:none; background:rgba(16,185,129,0.1); padding:10px; border-radius:10px; margin-bottom:15px; font-size:12px; color:#10b981; border:1px solid rgba(16,185,129,0.2);">
+                            <i class="fa fa-info-circle"></i> This user will be able to access the Guard Portal.
+                        </div>
+                        <input type="password" id="sPass" placeholder="Login Password" required>
+                        <button type="submit" class="login-btn">Create Staff Account</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Role / Category</th>
+                            <th>Login ID (Phone)</th>
+                            <th>Password</th>
+                            <th style="text-align:right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="staffTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:5000";
+
+        // Security Check
+        const currentUser = JSON.parse(localStorage.getItem("adminUser"));
+        if (!currentUser || (currentUser.role !== 'super_admin')) {
+            alert("Restricted! Only Super Admins can manage staff.");
+            window.location.href = "dashboard.html";
+        }
+
+        function toggleGuardInfo() {
+            const cat = document.getElementById("sCat").value;
+            document.getElementById("guardAlert").style.display = (cat === 'Security') ? 'block' : 'none';
+        }
+
+        async function loadStaff() {
+            try {
+                const res = await fetch(`${API_URL}/all-staff`);
+                const data = await res.json();
+                const tableBody = document.getElementById("staffTableBody");
+                tableBody.innerHTML = "";
+
+                data.forEach(s => {
+                    const isSecurity = s.category === 'Security';
+                    const row = tableBody.insertRow();
+                    row.innerHTML = `
+                        <td><b>${s.name}</b></td>
+                        <td><span class="cat-badge ${isSecurity ? 'badge-security' : 'badge-other'}">
+                            <i class="fa ${isSecurity ? 'fa-shield-halved' : 'fa-tools'}"></i> ${s.category}
+                        </span></td>
+                        <td>${s.phone_no}</td>
+                        <td><span class="pass-code">${s.password}</span></td>
+                        <td style="text-align: right;">
+                            <button onclick="deleteStaff(${s.id})" class="remove-btn"><i class="fa fa-trash"></i> Remove</button>
+                        </td>
+                    `;
+                });
+            } catch (err) { console.error("❌ Load error:", err); }
+        }
+
+        document.getElementById("staffForm").onsubmit = async (e) => {
+            e.preventDefault();
+            const staffData = {
+                name: document.getElementById("sName").value,
+                phone_no: document.getElementById("sPhone").value,
+                category: document.getElementById("sCat").value,
+                password: document.getElementById("sPass").value
+            };
+            try {
+                const res = await fetch(`${API_URL}/add-staff`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(staffData)
+                });
+                if (res.ok) {
+                    alert("✅ Account Created! Guard/Staff can now login.");
+                    document.getElementById("staffModal").style.display = 'none';
+                    document.getElementById("staffForm").reset();
+                    loadStaff();
+                }
+            } catch (err) { alert("❌ Error saving staff!"); }
+        };
+
+        async function deleteStaff(id) {
+            if(!confirm("Are you sure? This will disable their login access.")) return;
+            await fetch(`${API_URL}/delete-staff/${id}`, { method: 'DELETE' });
+            loadStaff();
+        }
+
+        function logout() { localStorage.removeItem("adminUser"); window.location.href = "login.html"; }
+        window.onload = loadStaff;
+    </script>
+    <script src="../js/authchecks.js"></script>
+</body>
+</html>

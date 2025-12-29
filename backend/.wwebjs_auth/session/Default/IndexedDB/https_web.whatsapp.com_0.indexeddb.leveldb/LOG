@@ -1,0 +1,62 @@
+2025/12/29-15:18:16.245 26e0 Reusing MANIFEST C:\Users\Umair Afridi\OneDrive\Desktop\HousingManagement\backend\.wwebjs_auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2025/12/29-15:18:16.248 26e0 Recovering log #1522
+2025/12/29-15:18:16.398 26e0 Reusing old log C:\Users\Umair Afridi\OneDrive\Desktop\HousingManagement\backend\.wwebjs_auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/001522.log 
+2025/12/29-15:18:21.648 29e8 Compacting 1@1 + 10@2 files
+2025/12/29-15:18:22.040 29e8 Generated table #1527@1: 60204 keys, 2336506 bytes
+2025/12/29-15:18:22.454 29e8 Generated table #1528@1: 48372 keys, 2210078 bytes
+2025/12/29-15:18:22.600 29e8 Generated table #1529@1: 10884 keys, 2161507 bytes
+2025/12/29-15:18:23.042 29e8 Generated table #1530@1: 5515 keys, 2154790 bytes
+2025/12/29-15:18:23.717 29e8 Level-0 table #1533: started
+2025/12/29-15:18:23.739 29e8 Level-0 table #1533: 277407 bytes OK
+2025/12/29-15:18:23.744 29e8 Delete type=0 #1522
+2025/12/29-15:18:24.166 29e8 Generated table #1531@1: 32776 keys, 2240390 bytes
+2025/12/29-15:18:24.756 29e8 Generated table #1534@1: 19360 keys, 2217082 bytes
+2025/12/29-15:18:25.465 29e8 Generated table #1535@1: 37607 keys, 2328436 bytes
+2025/12/29-15:18:25.883 29e8 Generated table #1536@1: 20492 keys, 2335039 bytes
+2025/12/29-15:18:26.233 29e8 Generated table #1537@1: 13845 keys, 2251990 bytes
+2025/12/29-15:18:26.734 29e8 Generated table #1538@1: 48721 keys, 2215476 bytes
+2025/12/29-15:18:26.755 29e8 Generated table #1539@1: 2166 keys, 44685 bytes
+2025/12/29-15:18:26.755 29e8 Compacted 1@1 + 10@2 files => 22495979 bytes
+2025/12/29-15:18:26.758 29e8 compacted to: files[ 1 1 22 0 0 0 0 ]
+2025/12/29-15:18:26.759 23a4 Manual compaction at level-0 from '\x00L\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00M\x00\x00\x00' @ 0 : 0; will stop at '\x00L\x00\x00\x05' @ 3993231 : 1
+2025/12/29-15:18:26.759 23a4 Compacting 1@0 + 1@1 files
+2025/12/29-15:18:26.800 23a4 Generated table #1540@0: 6570 keys, 152915 bytes
+2025/12/29-15:18:26.807 23a4 Generated table #1541@0: 420 keys, 6992 bytes
+2025/12/29-15:18:26.807 23a4 Compacted 1@0 + 1@1 files => 159907 bytes
+2025/12/29-15:18:26.809 23a4 compacted to: files[ 0 2 22 0 0 0 0 ]
+2025/12/29-15:18:26.810 23a4 Delete type=2 #1533
+2025/12/29-15:18:26.811 23a4 Manual compaction at level-0 from '\x00L\x00\x00\x05' @ 3993231 : 1 .. '\x00M\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/12/29-15:18:27.259 23a4 Compacting 1@1 + 9@2 files
+2025/12/29-15:18:27.560 23a4 Generated table #1542@1: 60819 keys, 2337830 bytes
+2025/12/29-15:18:28.115 23a4 Generated table #1543@1: 48306 keys, 2209262 bytes
+2025/12/29-15:18:28.340 23a4 Generated table #1544@1: 9339 keys, 2158749 bytes
+2025/12/29-15:18:28.509 23a4 Generated table #1545@1: 6363 keys, 2158096 bytes
+2025/12/29-15:18:29.879 23a4 Generated table #1546@1: 32345 keys, 2238624 bytes
+2025/12/29-15:18:30.530 23a4 Generated table #1547@1: 20907 keys, 2217082 bytes
+2025/12/29-15:18:32.077 23a4 Generated table #1548@1: 36622 keys, 2331176 bytes
+2025/12/29-15:18:32.695 23a4 Generated table #1549@1: 19874 keys, 2334849 bytes
+2025/12/29-15:18:32.932 23a4 Generated table #1550@1: 13416 keys, 2176260 bytes
+2025/12/29-15:18:32.932 23a4 Compacted 1@1 + 9@2 files => 20161928 bytes
+2025/12/29-15:18:32.935 23a4 compacted to: files[ 0 1 22 0 0 0 0 ]
+2025/12/29-15:18:32.936 23a4 Delete type=2 #1508
+2025/12/29-15:18:32.937 23a4 Delete type=2 #1512
+2025/12/29-15:18:32.937 23a4 Delete type=2 #1513
+2025/12/29-15:18:32.937 23a4 Delete type=2 #1514
+2025/12/29-15:18:32.937 23a4 Delete type=2 #1515
+2025/12/29-15:18:32.937 23a4 Delete type=2 #1516
+2025/12/29-15:18:32.937 23a4 Delete type=2 #1517
+2025/12/29-15:18:32.938 23a4 Delete type=2 #1518
+2025/12/29-15:18:32.938 23a4 Delete type=2 #1519
+2025/12/29-15:18:32.938 23a4 Delete type=2 #1520
+2025/12/29-15:18:32.938 23a4 Delete type=2 #1524
+2025/12/29-15:18:32.938 23a4 Delete type=2 #1525
+2025/12/29-15:18:32.938 23a4 Delete type=2 #1527
+2025/12/29-15:18:32.938 23a4 Delete type=2 #1528
+2025/12/29-15:18:32.938 23a4 Delete type=2 #1529
+2025/12/29-15:18:32.938 23a4 Delete type=2 #1530
+2025/12/29-15:18:32.938 23a4 Delete type=2 #1531
+2025/12/29-15:18:32.939 23a4 Delete type=2 #1534
+2025/12/29-15:18:32.939 23a4 Delete type=2 #1535
+2025/12/29-15:18:32.939 23a4 Delete type=2 #1536
+2025/12/29-15:18:32.939 23a4 Delete type=2 #1537
+2025/12/29-15:18:32.939 23a4 Delete type=2 #1540

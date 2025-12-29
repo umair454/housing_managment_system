@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Complaints | Resident Portal</title>
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .sidebar { background: #1e3a8a; }
+        #notifBadge { background: #ef4444; color: white; border-radius: 50%; padding: 2px 7px; font-size: 11px; margin-left: 5px; display: none; }
+        .img-preview { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); transition: 0.3s; }
+        .img-preview:hover { transform: scale(1.1); }
+        .staff-info { font-size: 11px; color: #3b82f6; display: block; margin-top: 4px; font-weight: 600; }
+
+        /* --- New Professional Modal Styling --- */
+        .modal-content {
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            max-width: 500px;
+        }
+
+        .modal-content h2 {
+            color: #f8fafc;
+            font-weight: 600;
+            margin-bottom: 25px;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            color: #94a3b8;
+            font-size: 13px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .modal-content select, 
+        .modal-content textarea, 
+        .modal-content input[type="file"] {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .modal-content select:focus, 
+        .modal-content textarea:focus {
+            border-color: #3b82f6;
+            outline: none;
+            background: rgba(15, 23, 42, 0.8);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            background: rgba(15, 23, 42, 0.6);
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            text-align: center;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .file-input-wrapper:hover {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            border: none;
+            padding: 14px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            border-radius: 12px;
+            margin-top: 10px;
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.4);
+            filter: brightness(1.1);
+        }
+
+        .close-btn {
+            color: #64748b;
+            font-size: 24px;
+            top: 15px;
+            right: 20px;
+            transition: 0.2s;
+        }
+
+        .close-btn:hover {
+            color: #ef4444;
+            transform: rotate(90deg);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="logo"><h2>HMS<span>User</span></h2></div>
+            <nav>
+                <ul>
+                    <li onclick="location.href='resident-dashboard.html'" style="cursor:pointer;">My Dashboard</li>
+                    <li onclick="location.href='user-bills.html'" style="cursor:pointer;">My Bills</li>
+                    <li class="active">Complaints</li>
+                    <li onclick="showTab('visitors-tab', this); clearVisitorBadge();" style="cursor: pointer;">
+                        My Visitors <span id="visitorBadge" style="background: #10b981; color: white; border-radius: 50%; padding: 2px 7px; font-size: 11px; display: none;">0</span>
+                    </li>
+                    
+                    <li onclick="location.href='resident-dashboard.html?tab=notif'" style="cursor:pointer;">
+                        Notifications <span id="notifBadge">0</span>
+                    </li>
+                    <li onclick="logoutUser()" style="cursor:pointer; color:#fda4af; margin-top: 20px;">Logout</li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header style="display:flex; justify-content:space-between;">
+                <h1>My Complaints</h1>
+                <button onclick="document.getElementById('compModal').style.display='block'" class="edit-btn" style="background:#2563eb; width:auto; padding:10px 20px; border-radius: 10px;">+ New Complaint</button>
+            </header>
+
+            <div id="compModal" class="modal">
+                <div class="modal-content">
+                    <span class="close-btn" onclick="this.parentElement.parentElement.style.display='none'">&times;</span>
+                    <h2><i class="fa-solid fa-circle-exclamation" style="color: #3b82f6; margin-right: 10px;"></i>Submit Complaint</h2>
+                    <form id="complaintForm">
+                        <div class="form-group">
+                            <label class="form-label">Category</label>
+                            <select id="cat" required>
+                                <option value="Water">Water Issue</option>
+                                <option value="Electricity">Electricity Issue</option>
+                                <option value="Security">Security Concern</option>
+                                <option value="Plumbing">Plumbing Issue</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Issue Details</label>
+                            <textarea id="desc" placeholder="Please describe the issue in detail..." required rows="4"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Evidence / Photo (Optional)</label>
+                            <div class="file-input-wrapper" onclick="document.getElementById('compPhoto').click()">
+                                <i class="fa-solid fa-cloud-arrow-up" style="font-size: 24px; color: #3b82f6; margin-bottom: 8px;"></i>
+                                <p style="color: #94a3b8; font-size: 12px; margin: 0;">Click to upload image</p>
+                                <input type="file" id="compPhoto" accept="image/*" style="display: none;">
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="login-btn" style="width: 100%;">Submit Complaint</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table id="compTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Photo</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Status & Staff</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:5000";
+        const userData = JSON.parse(localStorage.getItem("residentUser"));
+
+        if (!userData) {
+            window.location.href = "resident-login.html";
+        }
+
+        async function updateNotifBadge() {
+            try {
+                const res = await fetch(`${API_URL}/my-notifications/${userData.id}`);
+                const notifications = await res.json();
+                const badge = document.getElementById("notifBadge");
+                if (badge && notifications.length > 0) {
+                    badge.innerText = notifications.length;
+                    badge.style.display = "inline-block";
+                }
+            } catch (err) {
+                console.error("Badge Error:", err);
+            }
+        }
+
+        async function load() {
+            try {
+                const res = await fetch(`${API_URL}/my-complaints/${userData.house_no}`);
+                const data = await res.json();
+                const tableBody = document.querySelector("#compTable tbody");
+                tableBody.innerHTML = "";
+
+                const personal = data.filter(c => c.house_no !== 'All');
+
+                personal.forEach(c => {
+                    const row = tableBody.insertRow();
+                    const photoHtml = c.complaint_photo ? 
+                        `<img src="${API_URL}/uploads/complaints/${c.complaint_photo}" class="img-preview" onclick="window.open(this.src)">` : 
+                        `<span style="color:#666; font-size:12px;">No Photo</span>`;
+
+                    const staffHtml = c.assigned_staff && c.assigned_staff !== 'Not Assigned' ? 
+                        `<span class="staff-info"><i class="fa-solid fa-user-gear"></i> Assigned: ${c.assigned_staff}</span>` : 
+                        '';
+
+                    row.innerHTML = `
+                        <td>${new Date(c.created_at).toLocaleDateString()}</td>
+                        <td>${photoHtml}</td>
+                        <td>${c.category}</td>
+                        <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${c.description}</td>
+                        <td>
+                            <span class="status-${c.status.toLowerCase()}">${c.status}</span>
+                            ${staffHtml}
+                        </td>
+                    `;
+                });
+            } catch (err) {
+                console.error("Load Error:", err);
+            }
+        }
+
+        document.getElementById("complaintForm").onsubmit = async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('resident_name', userData.name);
+            formData.append('house_no', userData.house_no);
+            formData.append('category', document.getElementById("cat").value);
+            formData.append('description', document.getElementById("desc").value);
+            
+            const photoFile = document.getElementById("compPhoto").files[0];
+            if (photoFile) {
+                formData.append('photo', photoFile);
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/add-complaint-with-photo`, {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (response.ok) {
+                    alert("Complaint Registered Successfully!");
+                    location.reload();
+                } else {
+                    alert("Error submitting complaint.");
+                }
+            } catch (err) {
+                console.error("Submit Error:", err);
+                alert("Server Connection Failed.");
+            }
+        };
+
+        function logoutUser() {
+            localStorage.removeItem("residentUser");
+            window.location.href = "resident-login.html";
+        }
+
+        window.onload = () => {
+            load();
+            updateNotifBadge();
+        };
+    </script>
+</body>
+</html>

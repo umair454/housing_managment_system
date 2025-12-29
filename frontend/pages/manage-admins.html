@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Management | HMS Hub</title>
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --primary: #3b82f6; 
+            --primary-dark: #2563eb;
+            --glass: rgba(255, 255, 255, 0.03); 
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --sidebar-width: 260px; 
+            --bg-dark: #0f172a;
+        }
+
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background: var(--bg-dark); 
+            color: #f8fafc; 
+            margin: 0; 
+            display: flex;
+            flex-direction: row;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Responsive Logic */
+        .sidebar { 
+            width: var(--sidebar-width); 
+            background: #1e3a8a; 
+            height: 100vh; 
+            position: fixed; 
+            padding: 20px; 
+            box-sizing: border-box;
+            z-index: 100;
+        }
+
+        .container { 
+            margin-left: var(--sidebar-width); 
+            flex-grow: 1;
+            width: calc(100% - var(--sidebar-width)); 
+            padding: 40px; 
+            box-sizing: border-box; 
+            transition: all 0.3s ease;
+        }
+
+        /* Cards and Design */
+        .admin-card { 
+            background: var(--glass); 
+            backdrop-filter: blur(12px); 
+            border-radius: 20px; 
+            border: 1px solid var(--glass-border); 
+            padding: 25px; 
+            margin-bottom: 30px; 
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .form-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 20px; 
+        }
+
+        input, select { 
+            width: 100%; 
+            padding: 12px; 
+            background: rgba(15, 23, 42, 0.8); 
+            border: 1px solid var(--glass-border); 
+            border-radius: 12px; 
+            color: white; 
+            box-sizing: border-box;
+        }
+
+        .save-btn { 
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark)); 
+            color: white; border: none; padding: 14px 28px; border-radius: 12px; 
+            font-weight: 600; cursor: pointer; margin-top: 20px; width: auto;
+        }
+
+        /* Table Responsiveness */
+        .table-wrapper { 
+            width: 100%;
+            overflow-x: auto; /* Mobile par table scroll hogi page nahi */
+            border-radius: 12px;
+        }
+        
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th, td { text-align: left; padding: 15px; border-bottom: 1px solid var(--glass-border); }
+
+        .role-badge { padding: 5px 12px; border-radius: 100px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        .role-super { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+        .role-acc { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+        .role-sec { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+
+        /* --- MOBILE RESPONSIVE QUERIES --- */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .sidebar { 
+                width: 100%; 
+                height: auto; 
+                position: relative; 
+                padding: 15px;
+            }
+            .container { 
+                margin-left: 0; 
+                width: 100%; 
+                padding: 20px; 
+            }
+            .form-grid { grid-template-columns: 1fr; }
+            .save-btn { width: 100%; }
+            h1 { font-size: 22px; }
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo"><h2>HMS<span>Hub</span></h2></div>
+        <nav>
+                <ul>
+                    <li id="nav-dashboard" class="active" onclick="location.href='dashboard.html'"><i class="fa fa-chart-line"></i> Dashboard</li>
+                    <li id="nav-residents" onclick="location.href='residents.html'"><i class="fa fa-users"></i> Residents</li>
+                    <li id="nav-billing" onclick="location.href='billing.html'"><i class="fa fa-money-bill-wave"></i> Billing</li>
+                    <li id="nav-expenses" onclick="location.href='expenses.html'"><i class="fa fa-wallet"></i> Expenses</li>
+                    <li id="nav-complaints" onclick="location.href='complaints.html'"><i class="fa fa-headset"></i> Complaints</li>
+                    <li id="nav-security" onclick="location.href='security.html'"><i class="fa fa-shield-halved"></i> Security Logs</li>
+                    <li id="nav-staff" onclick="location.href='staff-mgmt.html'"><i class="fa fa-user-gear"></i> Staff Management</li>
+                    <li id="nav-admin" onclick="location.href='manage-admins.html'"><i class="fa fa-user-shield"></i> Admin Settings</li>
+                    <li onclick="logout()"><i class="fa fa-sign-out-alt"></i> Logout</li>
+                </ul>
+            </nav>
+    </aside>
+
+    <div class="container">
+        <h1>Admin Role Management</h1>
+
+        <div class="admin-card">
+            <h3><i class="fa fa-plus-circle"></i> Create New Authority</h3>
+            <form id="addAdminForm">
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label style="display:block; font-size:12px; margin-bottom:5px; color:#94a3b8;">Username</label>
+                        <input type="text" id="adminUser" placeholder="admin_name" required>
+                    </div>
+                    <div class="input-group">
+                        <label style="display:block; font-size:12px; margin-bottom:5px; color:#94a3b8;">Password</label>
+                        <input type="password" id="adminPass" placeholder="••••••••" required>
+                    </div>
+                    <div class="input-group">
+                        <label style="display:block; font-size:12px; margin-bottom:5px; color:#94a3b8;">Role</label>
+                        <select id="adminRole" required>
+                            <option value="super_admin">Super Admin</option>
+                            <option value="accountant">Accountant</option>
+                            <option value="security">Security</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="save-btn">Authorize Account</button>
+            </form>
+        </div>
+
+        <div class="admin-card">
+            <h3><i class="fa fa-users"></i> System Operators</h3>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Role</th>
+                            <th>Created</th>
+                            <th style="text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:5000";
+
+        window.onload = () => {
+            const user = JSON.parse(localStorage.getItem("adminUser"));
+            if (!user || user.role !== 'super_admin') {
+                window.location.href = "dashboard.html";
+                return;
+            }
+            loadAdmins();
+        };
+
+        document.getElementById("addAdminForm").onsubmit = async (e) => {
+            e.preventDefault();
+            const payload = {
+                username: document.getElementById("adminUser").value,
+                password: document.getElementById("adminPass").value,
+                role: document.getElementById("adminRole").value
+            };
+            try {
+                const res = await fetch(`${API_URL}/add-admin`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    alert("Account Created!");
+                    document.getElementById("addAdminForm").reset();
+                    loadAdmins();
+                }
+            } catch (err) { alert("Error connecting to server"); }
+        };
+
+        async function loadAdmins() {
+            try {
+                const res = await fetch(`${API_URL}/all-admins`);
+                const data = await res.json();
+                const tableBody = document.getElementById("adminTableBody");
+                tableBody.innerHTML = "";
+                data.forEach(admin => {
+                    const row = tableBody.insertRow();
+                    let roleClass = admin.role === 'super_admin' ? 'role-super' : (admin.role === 'accountant' ? 'role-acc' : 'role-sec');
+                    row.innerHTML = `
+                        <td><b>${admin.username}</b></td>
+                        <td><span class="role-badge ${roleClass}">${admin.role.replace('_', ' ')}</span></td>
+                        <td>${new Date(admin.created_at).toLocaleDateString()}</td>
+                        <td style="text-align: right;">
+                            ${admin.role !== 'super_admin' ? `<button onclick="deleteAdmin(${admin.id})" style="color:#ef4444; background:none; border:none; cursor:pointer;"><i class="fa fa-trash"></i></button>` : `<i class="fa fa-lock" style="color:#64748b"></i>`}
+                        </td>
+                    `;
+                });
+            } catch (err) { console.error(err); }
+        }
+
+        async function deleteAdmin(id) {
+            if(!confirm("Remove this user?")) return;
+            await fetch(`${API_URL}/delete-admin/${id}`, { method: 'DELETE' });
+            loadAdmins();
+        }
+
+        function logout() { localStorage.clear(); window.location.href = "login.html"; }
+    </script>
+    <script src="../js/authchecks.js"></script>
+</body>
+</html>

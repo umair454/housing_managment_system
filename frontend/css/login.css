@@ -1,0 +1,158 @@
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #0f172a; /* Dark Blue-Black Background */
+    overflow: hidden;
+}
+
+/* Background Animation Elements */
+.background-animation {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+}
+
+.circle {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+}
+
+.circle:nth-child(1) {
+    width: 300px;
+    height: 300px;
+    background: #0ea5e9; /* Cyan */
+    top: 10%;
+    left: 10%;
+    animation: move 10s infinite alternate;
+}
+
+.circle:nth-child(2) {
+    width: 400px;
+    height: 400px;
+    background: #6366f1; /* Purple */
+    bottom: 10%;
+    right: 10%;
+    animation: move 15s infinite alternate-reverse;
+}
+
+@keyframes move {
+    from { transform: translate(0, 0); }
+    to { transform: translate(50px, 100px); }
+}
+
+/* The Glass Card */
+.glass-card {
+    background: rgba(255, 255, 255, 0.05); /* Transparent white */
+    backdrop-filter: blur(15px); /* Shishay wala blur */
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 40px;
+    width: 400px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.glass-card:hover {
+    transform: translateY(-5px); /* Chota sa 3D lift effect */
+}
+
+h1 {
+    color: white;
+    font-size: 2rem;
+    margin-bottom: 5px;
+}
+
+h1 span {
+    color: #0ea5e9; /* Logo highlight */
+}
+
+.subtitle {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    margin-bottom: 30px;
+}
+
+/* Form Styling */
+.input-group {
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    color: #cbd5e1;
+    font-size: 0.8rem;
+    margin-bottom: 8px;
+    margin-left: 5px;
+}
+
+input {
+    width: 100%;
+    padding: 12px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    color: white;
+    outline: none;
+    transition: 0.3s;
+}
+
+input:focus {
+    border-color: #0ea5e9;
+    box-shadow: 0 0 10px rgba(14, 165, 233, 0.3);
+}
+
+/* Neon Button */
+.login-btn {
+    width: 100%;
+    padding: 12px;
+    background: #0ea5e9;
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: 0.3s;
+    margin-top: 10px;
+}
+
+.login-btn:hover {
+    background: #0284c7;
+    box-shadow: 0 0 20px rgba(14, 165, 233, 0.6);
+}
+
+.login-footer {
+    margin-top: 25px;
+    font-size: 0.8rem;
+}
+
+.login-footer a {
+    color: #94a3b8;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.login-footer a:hover {
+    color: white;
+}
+
+.login-footer span {
+    color: #475569;
+    margin: 0 10px;
+}

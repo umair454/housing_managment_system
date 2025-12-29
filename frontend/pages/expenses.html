@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Management | HMS Hub</title>
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        :root { --primary: #10b981; --glass: rgba(255, 255, 255, 0.03); --sidebar-width: 260px; }
+        body { font-family: 'Poppins', sans-serif; background: #0f172a; color: white; margin: 0; display: flex; }
+        .sidebar { width: var(--sidebar-width); background: #1e3a8a; height: 100vh; position: fixed; padding: 20px; box-sizing: border-box; }
+        .container { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); padding: 40px; box-sizing: border-box; }
+        
+        .card { background: var(--glass); backdrop-filter: blur(10px); border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); padding: 25px; margin-bottom: 25px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        
+        input, select, textarea { width: 100%; padding: 12px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; outline: none; box-sizing: border-box; }
+        .btn-save { background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+        .btn-save:hover { background: #059669; transform: translateY(-2px); }
+        
+        .report-btn { background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { text-align: left; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .cat-badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; background: rgba(16,185,129,0.1); color: #10b981; border: 1px solid rgba(16,185,129,0.2); }
+
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; position: relative; }
+            .container { margin-left: 0; width: 100%; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo"><h2>HMS<span>Hub</span></h2></div>
+         <nav>
+                <ul>
+                    <li id="nav-dashboard" class="active" onclick="location.href='dashboard.html'"><i class="fa fa-chart-line"></i> Dashboard</li>
+                    <li id="nav-residents" onclick="location.href='residents.html'"><i class="fa fa-users"></i> Residents</li>
+                    <li id="nav-billing" onclick="location.href='billing.html'"><i class="fa fa-money-bill-wave"></i> Billing</li>
+                    <li id="nav-expenses" onclick="location.href='expenses.html'"><i class="fa fa-wallet"></i> Expenses</li>
+                    <li id="nav-complaints" onclick="location.href='complaints.html'"><i class="fa fa-headset"></i> Complaints</li>
+                    <li id="nav-security" onclick="location.href='security.html'"><i class="fa fa-shield-halved"></i> Security Logs</li>
+                    <li id="nav-staff" onclick="location.href='staff-mgmt.html'"><i class="fa fa-user-gear"></i> Staff Management</li>
+                    <li id="nav-admin" onclick="location.href='manage-admins.html'"><i class="fa fa-user-shield"></i> Admin Settings</li>
+                    <li onclick="logout()"><i class="fa fa-sign-out-alt"></i> Logout</li>
+                </ul>
+            </nav>
+        </nav>
+    </aside>
+
+    <div class="container">
+        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px;">
+            <div>
+                <h1>Expense Tracker</h1>
+                <p style="color:#94a3b8;">Manage and monitor society spending</p>
+            </div>
+            <button onclick="downloadExpenseReport()" class="report-btn">
+                <i class="fa fa-file-pdf"></i> Download Expense Report
+            </button>
+        </header>
+
+        <div class="card">
+            <h3><i class="fa fa-plus-circle"></i> Add New Expense</h3>
+            <form id="expenseForm">
+                <div class="form-grid">
+                    <div>
+                        <label style="font-size: 12px; color: #64748b;">Title / Item Name</label>
+                        <input type="text" id="exTitle" placeholder="e.g. Electric Bill Jan" required>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; color: #64748b;">Category</label>
+                        <select id="exCat" required>
+                            <option value="Electricity">Electricity</option>
+                            <option value="Staff Salary">Staff Salary</option>
+                            <option value="Maintenance">Maintenance</option>
+                            <option value="Fuel">Fuel</option>
+                            <option value="Others">Others</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; color: #64748b;">Amount (Rs.)</label>
+                        <input type="number" id="exAmount" placeholder="0.00" required>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; color: #64748b;">Date</label>
+                        <input type="date" id="exDate" required>
+                    </div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <label style="font-size: 12px; color: #64748b;">Description</label>
+                    <textarea id="exDesc" rows="2" placeholder="Optional details..."></textarea>
+                </div>
+                <button type="submit" class="btn-save" style="margin-top: 20px;">Save Expense</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h3>Recent Expenses</h3>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Amount</th>
+                            <th>Date</th>
+                            <th style="text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expenseTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:5000";
+
+        // Security Check: Redirect if not logged in
+        const userRaw = localStorage.getItem("adminUser");
+        if (!userRaw) {
+            window.location.href = "login.html";
+        }
+
+        // 1. Save Expense
+        document.getElementById("expenseForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            console.log("Submitting expense...");
+
+            const payload = {
+                title: document.getElementById("exTitle").value,
+                category: document.getElementById("exCat").value,
+                amount: document.getElementById("exAmount").value,
+                expense_date: document.getElementById("exDate").value,
+                description: document.getElementById("exDesc").value
+            };
+
+            try {
+                const res = await fetch(`${API_URL}/add-expense`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (res.ok) {
+                    alert("✅ Expense Added Successfully!");
+                    document.getElementById("expenseForm").reset();
+                    loadExpenses();
+                } else {
+                    const errorData = await res.json();
+                    alert("❌ Error: " + errorData.error);
+                }
+            } catch (err) { 
+                console.error(err);
+                alert("❌ Connection Error! Server check karein."); 
+            }
+        });
+
+        // 2. Load Expenses
+        async function loadExpenses() {
+            try {
+                const res = await fetch(`${API_URL}/all-expenses`);
+                const data = await res.json();
+                const tbody = document.getElementById("expenseTableBody");
+                tbody.innerHTML = "";
+                data.forEach(ex => {
+                    const row = tbody.insertRow();
+                    row.innerHTML = `
+                        <td><b>${ex.title}</b></td>
+                        <td><span class="cat-badge">${ex.category}</span></td>
+                        <td style="color: #f87171;">Rs. ${ex.amount}</td>
+                        <td>${new Date(ex.expense_date).toLocaleDateString()}</td>
+                        <td style="text-align: right;">
+                            <button onclick="deleteExpense(${ex.id})" style="color:#ef4444; background:none; border:none; cursor:pointer;"><i class="fa fa-trash"></i></button>
+                        </td>
+                    `;
+                });
+            } catch (err) { console.error("Load error:", err); }
+        }
+
+        // 3. Delete Expense
+        async function deleteExpense(id) {
+            if(!confirm("Remove this record?")) return;
+            try {
+                await fetch(`${API_URL}/delete-expense/${id}`, { method: 'DELETE' });
+                loadExpenses();
+            } catch (err) { console.error("Delete error:", err); }
+        }
+
+        // 4. Generate PDF Report
+        async function downloadExpenseReport() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFontSize(20);
+            doc.text("Society Expense Report", 14, 20);
+            doc.setFontSize(10);
+            doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 28);
+
+            try {
+                const res = await fetch(`${API_URL}/all-expenses`);
+                const data = await res.json();
+
+                doc.autoTable({
+                    startY: 35,
+                    head: [['Title', 'Category', 'Amount', 'Date']],
+                    body: data.map(ex => [ex.title, ex.category, `Rs. ${ex.amount}`, ex.expense_date.split('T')[0]]),
+                    theme: 'striped',
+                    headStyles: { fillColor: [30, 58, 138] }
+                });
+
+                doc.save(`HMS_Expense_Report_${Date.now()}.pdf`);
+            } catch (err) { alert("PDF Error!"); }
+        }
+
+        function logout() { localStorage.clear(); window.location.href = "login.html"; }
+        
+        // Initial Load
+        window.onload = loadExpenses;
+    </script>
+    <script src="../js/authchecks.js"></script>
+</body>
+</html>

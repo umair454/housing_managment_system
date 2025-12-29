@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HMS | Security Logs</title>
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        .status-badge { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .purpose-delivery { background: rgba(37, 99, 235, 0.2); color: #3b82f6; }
+        .purpose-guest { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        
+        .excel-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white; border: none; padding: 10px 20px; 
+            border-radius: 10px; cursor: pointer; font-weight: 600;
+            display: flex; align-items: center; gap: 8px; transition: 0.3s;
+        }
+        .excel-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="logo"><h2>HMS<span>Hub</span></h2></div>
+            <nav>
+                <ul>
+                    <li id="nav-dashboard" onclick="location.href='dashboard.html'"><i class="fa fa-chart-line"></i> Dashboard</li>
+                    <li id="nav-residents" onclick="location.href='residents.html'"><i class="fa fa-users"></i> Residents</li>
+                    <li id="nav-billing" onclick="location.href='billing.html'"><i class="fa fa-money-bill-wave"></i> Billing</li>
+                    <li id="nav-expenses" onclick="location.href='expenses.html'"><i class="fa fa-wallet"></i> Expenses</li>
+                    <li id="nav-complaints" onclick="location.href='complaints.html'"><i class="fa fa-headset"></i> Complaints</li>
+                    <li id="nav-security" class="active" onclick="location.href='security.html'"><i class="fa fa-shield-halved"></i> Security Logs</li>
+                    <li id="nav-staff" onclick="location.href='staff-mgmt.html'"><i class="fa fa-user-gear"></i> Staff Management</li>
+                    <li id="nav-admin" onclick="location.href='manage-admins.html'"><i class="fa fa-user-shield"></i> Admin Settings</li>
+                    <li onclick="logout()"><i class="fa fa-sign-out-alt"></i> Logout</li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <div>
+                    <h1 style="font-weight: 600;">Gate Security Logs</h1>
+                    <p style="color: #888;">Complete history of visitors entered from main gate.</p>
+                </div>
+                <button onclick="downloadVisitorExcel()" class="excel-btn">
+                    <i class="fa fa-file-excel"></i> Export to Excel
+                </button>
+            </header>
+
+            <section class="recent-section">
+                <div style="margin-bottom: 25px; display: flex; gap: 15px;">
+                    <div style="position: relative; flex: 1;">
+                        <i class="fa fa-search" style="position: absolute; left: 15px; top: 15px; color: #888;"></i>
+                        <input type="text" id="visitorSearch" placeholder="Search by name or house..." 
+                               onkeyup="searchVisitors()" style="padding: 12px 45px; border-radius: 10px; width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; outline: none;">
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Visitor Name</th>
+                                <th>Phone No</th>
+                                <th>House No</th>
+                                <th>Purpose</th>
+                                <th>Entry Time</th>
+                                <th>Exit Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="securityLogsBody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:5000";
+
+        async function fetchLogs() {
+            try {
+                const res = await fetch(`${API_URL}/visitors-log`);
+                const data = await res.json();
+                const tbody = document.getElementById('securityLogsBody');
+                tbody.innerHTML = "";
+
+                if(data.length === 0) {
+                    tbody.innerHTML = "<tr><td colspan='6' style='text-align:center'>No visitor logs found.</td></tr>";
+                    return;
+                }
+
+                data.forEach(v => {
+                    const entryTime = new Date(v.entry_time).toLocaleString('en-PK');
+                    const exitTime = v.exit_time ? new Date(v.exit_time).toLocaleString('en-PK') : "<span style='color:#f59e0b'>Still Inside</span>";
+                    
+                    const row = `
+                        <tr>
+                            <td><b>${v.visitor_name}</b></td>
+                            <td>${v.phone_no}</td>
+                            <td><b style="color:#00d2ff">${v.house_no}</b></td>
+                            <td><span class="status-badge purpose-guest">${v.purpose}</span></td>
+                            <td style="color:#aaa; font-size:13px;">${entryTime}</td>
+                            <td style="color:#aaa; font-size:13px;">${exitTime}</td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            } catch (err) { console.error(err); }
+        }
+
+        // --- 📊 EXCEL EXPORT FUNCTION ---
+        async function downloadVisitorExcel() {
+            try {
+                const res = await fetch(`${API_URL}/visitors-log`);
+                const data = await res.json();
+
+                if (!data || data.length === 0) {
+                    alert("No data available to export!");
+                    return;
+                }
+
+                // Clean data for Excel
+                const excelData = data.map(v => ({
+                    "Visitor Name": v.visitor_name,
+                    "Phone Number": v.phone_no,
+                    "House Visited": v.house_no,
+                    "Purpose": v.purpose,
+                    "Entry Time": new Date(v.entry_time).toLocaleString(),
+                    "Exit Time": v.exit_time ? new Date(v.exit_time).toLocaleString() : "Still Inside"
+                }));
+
+                const worksheet = XLSX.utils.json_to_sheet(excelData);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Visitors");
+
+                XLSX.writeFile(workbook, `Visitor_Logs_${new Date().toLocaleDateString()}.xlsx`);
+            } catch (err) {
+                alert("Error downloading Excel report.");
+            }
+        }
+
+        function searchVisitors() {
+            let input = document.getElementById("visitorSearch").value.toUpperCase();
+            let rows = document.querySelector("#securityLogsBody").rows;
+            for (let i = 0; i < rows.length; i++) {
+                let name = rows[i].cells[0].textContent.toUpperCase();
+                let house = rows[i].cells[2].textContent.toUpperCase();
+                rows[i].style.display = (name.includes(input) || house.includes(input)) ? "" : "none";
+            }
+        }
+
+        function logout() { localStorage.removeItem("adminUser"); window.location.href = "login.html"; }
+        window.onload = fetchLogs;
+    </script>
+    <script src="../js/authchecks.js"></script>
+</body>
+</html>

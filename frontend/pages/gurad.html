@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HMS | Guard Security Portal</title>
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        /* Scrolling Fix: Body ko humesha scrollable rakhein login ke baad */
+        body { background: #0f172a; color: white; font-family: 'Poppins', sans-serif; min-height: 100vh; overflow-y: auto !important; }
+        .guard-container { max-width: 800px; margin: 40px auto; padding: 20px; }
+        .guard-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 25px; border-radius: 20px; backdrop-filter: blur(10px); margin-bottom: 30px; }
+        
+        /* Login Overlay */
+        #loginOverlay { position: fixed; inset: 0; background: #0f172a; z-index: 2000; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .login-box { background: #1e293b; padding: 40px; border-radius: 24px; width: 100%; max-width: 350px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
+        
+        input, select { width: 100%; padding: 12px; margin-bottom: 15px; background: #1e293b; border: 1px solid #334155; border-radius: 10px; color: white; outline: none; box-sizing: border-box; }
+        .notify-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer; }
+        
+        /* Visitor List Area */
+        .visitor-list { margin-top: 20px; width: 100%; border-collapse: collapse; }
+        .visitor-list th, .visitor-list td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 14px; }
+        .out-btn { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <div id="loginOverlay">
+        <div class="login-box">
+            <i class="fa fa-shield-halved" style="font-size: 50px; color: #3b82f6; margin-bottom: 20px;"></i>
+            <h2>Guard Login</h2>
+            <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Login using registered Staff Phone & Password</p>
+            <form id="guardLoginForm">
+                <input type="text" id="secPhone" placeholder="Staff Phone Number" required>
+                <input type="password" id="secPass" placeholder="Guard Password" required>
+                <button type="submit" class="notify-btn" style="background: #3b82f6;">Start Shift</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="guard-container" id="mainContent" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div>
+                <h1 style="margin:0;"><i class="fa fa-shield-halved"></i> Gate Security</h1>
+                <p id="guardNameDisplay" style="color: #10b981; font-weight: 600; margin:0;"></p>
+            </div>
+            <button onclick="logoutGuard()" class="out-btn" style="background: #475569;">End Shift</button>
+        </div>
+
+        <div class="guard-card">
+            <h3><i class="fa fa-user-plus"></i> New Visitor Entry</h3>
+            <form id="visitorForm" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <input type="text" id="vName" placeholder="Visitor Name" required>
+                <input type="text" id="vPhone" placeholder="Phone (WhatsApp)" required>
+                <input type="text" id="vHouse" placeholder="House No (e.g. A-12)" required>
+                <select id="vPurpose">
+                    <option value="Guest">Guest</option>
+                    <option value="Delivery">Delivery</option>
+                    <option value="Maintenance">Maintenance</option>
+                </select>
+                <button type="submit" id="submitBtn" class="notify-btn" style="grid-column: span 2;">
+                    Log Entry & Notify Resident
+                </button>
+            </form>
+        </div>
+
+        <div class="guard-card">
+            <h3><i class="fa fa-clock-rotate-left"></i> Current Visitors (Inside)</h3>
+            <div style="overflow-x: auto;"> <table class="visitor-list">
+                    <thead>
+                        <tr>
+                            <th>Visitor</th>
+                            <th>House</th>
+                            <th>Entry Time</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activeVisitorsTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:5000";
+
+        // --- 🔐 STAFF-BASED LOGIN LOGIC ---
+        document.getElementById('guardLoginForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const phone_no = document.getElementById('secPhone').value; 
+            const password = document.getElementById('secPass').value;
+
+            try {
+                const res = await fetch(`${API_URL}/staff-login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone_no, password })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    if (data.staff.category !== 'Security') {
+                        alert("❌ Access Denied! Only staff registered under 'Security' can login here.");
+                        return;
+                    }
+                    localStorage.setItem("guardSession", JSON.stringify(data.staff));
+                    checkSession();
+                } else {
+                    alert("❌ Invalid Details! Please check Phone Number and Password.");
+                }
+            } catch (err) { 
+                console.error(err);
+                alert("❌ Server connection failed!"); 
+            }
+        };
+
+        function checkSession() {
+            const session = localStorage.getItem("guardSession");
+            if (session) {
+                const user = JSON.parse(session);
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                document.getElementById('guardNameDisplay').innerText = "🛡️ On Duty: " + user.name;
+                
+                // Scrolling Fix: Ensure body can scroll after login overlay is hidden
+                document.body.style.overflow = "auto";
+                
+                loadActiveVisitors();
+            } else {
+                // Ensure scroll is hidden if not logged in
+                document.body.style.overflow = "hidden";
+            }
+        }
+
+        function logoutGuard() {
+            localStorage.removeItem("guardSession");
+            location.reload();
+        }
+
+        // --- VISITOR ENTRY ---
+        document.getElementById('visitorForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = "Processing...";
+
+            const data = {
+                visitor_name: document.getElementById('vName').value,
+                phone_no: document.getElementById('vPhone').value,
+                house_no: document.getElementById('vHouse').value,
+                purpose: document.getElementById('vPurpose').value
+            };
+
+            try {
+                const res = await fetch(`${API_URL}/add-visitor`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    alert("✅ Entry Logged & Notified!");
+                    document.getElementById('visitorForm').reset();
+                    loadActiveVisitors();
+                }
+            } catch (err) { alert("Error!"); }
+            finally {
+                btn.disabled = false;
+                btn.innerHTML = "Log Entry & Notify Resident";
+            }
+        };
+
+        // --- VISITOR EXIT (OUT TIME) ---
+        async function loadActiveVisitors() {
+            try {
+                const res = await fetch(`${API_URL}/visitors-log`);
+                const data = await res.json();
+                const tbody = document.getElementById('activeVisitorsTable');
+                tbody.innerHTML = "";
+                
+                data.filter(v => !v.exit_time).forEach(v => {
+                    const row = `<tr>
+                        <td><b>${v.visitor_name}</b></td>
+                        <td>${v.house_no}</td>
+                        <td>${new Date(v.entry_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
+                        <td><button class="out-btn" onclick="logExit(${v.id})">Mark Out</button></td>
+                    </tr>`;
+                    tbody.innerHTML += row;
+                });
+            } catch (e) { console.log(e); }
+        }
+
+        async function logExit(id) {
+            if(!confirm("Mark visitor as left?")) return;
+            try {
+                const res = await fetch(`${API_URL}/visitor-exit/${id}`, { method: 'POST' });
+                if(res.ok) {
+                    alert("⌛ Exit logged.");
+                    loadActiveVisitors();
+                }
+            } catch (err) { alert("Error logging exit"); }
+        }
+
+        // Initial check
+        window.onload = checkSession;
+    </script>
+</body>
+</html>

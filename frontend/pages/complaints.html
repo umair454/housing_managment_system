@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HMS | Complaints Management</title>
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        /* Modern table styling updates */
+        .photo-link { color: #3b82f6; text-decoration: none; font-size: 12px; font-weight: 600; }
+        .photo-link:hover { text-decoration: underline; }
+        .staff-select { 
+            background: #1e293b; 
+            color: white; 
+            border: 1px solid #334155; 
+            padding: 5px; 
+            border-radius: 5px; 
+            font-size: 12px; 
+            outline: none; 
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="logo">
+                <h2>HMS<span>Hub</span></h2>
+            </div>
+            <nav>
+    <nav>
+                <ul>
+                    <li id="nav-dashboard" class="active" onclick="location.href='dashboard.html'"><i class="fa fa-chart-line"></i> Dashboard</li>
+                    <li id="nav-residents" onclick="location.href='residents.html'"><i class="fa fa-users"></i> Residents</li>
+                    <li id="nav-billing" onclick="location.href='billing.html'"><i class="fa fa-money-bill-wave"></i> Billing</li>
+                    <li id="nav-expenses" onclick="location.href='expenses.html'"><i class="fa fa-wallet"></i> Expenses</li>
+                    <li id="nav-complaints" onclick="location.href='complaints.html'"><i class="fa fa-headset"></i> Complaints</li>
+                    <li id="nav-security" onclick="location.href='security.html'"><i class="fa fa-shield-halved"></i> Security Logs</li>
+                    <li id="nav-staff" onclick="location.href='staff-mgmt.html'"><i class="fa fa-user-gear"></i> Staff Management</li>
+                    <li id="nav-admin" onclick="location.href='manage-admins.html'"><i class="fa fa-user-shield"></i> Admin Settings</li>
+                    <li onclick="logout()"><i class="fa fa-sign-out-alt"></i> Logout</li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header style="display: flex; justify-content: space-between; align-items: center;">
+                <h1>Complaints Management</h1>
+                <button onclick="location.href='dashboard.html'" class="edit-btn"
+                    style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); width: auto; padding: 10px 20px;">←
+                    Back to Dashboard</button>
+            </header>
+
+            <section class="recent-section">
+                <div class="table-container">
+                    <table id="complaintsTable">
+                        <thead>
+                            <tr>
+                                <th>Resident</th>
+                                <th>House</th>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th>Photo</th> <th>Assign Staff</th> <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="complaintsTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="../js/complaints.js"></script>
+    <script src="../js/auth-check.js"></script>
+    <script src="../js/auth-check.js"></script>
+</body>
+
+</html>

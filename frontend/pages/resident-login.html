@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resident Portal | HMS Hub</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #2563eb; --secondary: #10b981; --dark: #0f172a; --glass: rgba(255, 255, 255, 0.95); }
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            margin: 0; 
+            height: 100vh; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            overflow: hidden;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+        }
+
+        .card {
+            background: var(--glass);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            transition: all 0.4s ease;
+        }
+
+        .logo-icon {
+            width: 70px;
+            height: 70px;
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin: 0 auto 20px;
+        }
+
+        h2 { margin: 0; color: var(--dark); font-weight: 600; font-size: 24px; }
+        p { color: #64748b; font-size: 14px; margin-top: 8px; margin-bottom: 30px; }
+
+        .input-group { text-align: left; margin-bottom: 20px; position: relative; }
+        .input-group label { display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px; }
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: 14px;
+            transition: 0.3s;
+            outline: none;
+        }
+        .input-group input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3); }
+        .btn-success { background: var(--secondary); color: white; }
+
+        .link-text { margin-top: 25px; font-size: 13px; color: #64748b; }
+        .link-text a { color: var(--primary); text-decoration: none; font-weight: 600; cursor: pointer; }
+
+        .otp-badge { background: #fef3c7; color: #92400e; padding: 10px; border-radius: 10px; font-size: 12px; margin-bottom: 20px; display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <div id="loginSection" class="card">
+            <div class="logo-icon"><i class="fa fa-home"></i></div>
+            <h2>Resident Login</h2>
+            <p>Welcome back! Access your bills & complaints.</p>
+            
+            <form id="residentLoginForm">
+                <div class="input-group">
+                    <label>House Number</label>
+                    <input type="text" id="houseNo" placeholder="e.g. A-101" required>
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="resPass" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary" id="loginBtn">
+                    Login to Portal <i class="fa fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <div class="link-text">
+                New Resident? <a onclick="toggleForms()">Setup your account</a>
+            </div>
+        </div>
+
+        <div id="setupSection" class="card" style="display:none;">
+            <div class="logo-icon" style="color:var(--secondary)"><i class="fa fa-user-plus"></i></div>
+            <h2>Account Setup</h2>
+            <p>Verify your house to set a password.</p>
+            
+            <div id="otpStep1">
+                <div class="input-group">
+                    <label>Registered House No</label>
+                    <input type="text" id="setupHouse" placeholder="e.g. A-101">
+                </div>
+                <div class="input-group">
+                    <label>WhatsApp Number</label>
+                    <input type="text" id="setupPhone" placeholder="03XXXXXXXXX">
+                </div>
+                <button onclick="sendOTP()" class="btn btn-primary" id="otpBtn">
+                    Get Verification Code <i class="fa fa-paper-plane"></i>
+                </button>
+            </div>
+
+            <div id="otpStep2" style="display:none;">
+                <div class="otp-badge" id="otpAlert" style="display:block;">
+                    <i class="fa fa-info-circle"></i> OTP has been sent to your WhatsApp.
+                </div>
+                <div class="input-group">
+                    <label>Verification Code</label>
+                    <input type="text" id="inputOTP" placeholder="Enter 6-digit code">
+                </div>
+                <div class="input-group">
+                    <label>Set New Password</label>
+                    <input type="password" id="newPass" placeholder="Min 6 characters">
+                </div>
+                <button onclick="verifyAndFinish()" class="btn btn-success" id="verifyBtn">
+                    Verify & Create Account <i class="fa fa-check-circle"></i>
+                </button>
+            </div>
+
+            <div class="link-text">
+                <a onclick="toggleForms()"><i class="fa fa-arrow-left"></i> Back to Login</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:5000";
+
+        function toggleForms() {
+            const login = document.getElementById('loginSection');
+            const setup = document.getElementById('setupSection');
+            login.style.display = login.style.display === 'none' ? 'block' : 'none';
+            setup.style.display = setup.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // --- LOGIN LOGIC ---
+        document.getElementById("residentLoginForm").onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Authenticating...';
+            
+            const house_no = document.getElementById("houseNo").value;
+            const password = document.getElementById("resPass").value;
+
+            try {
+                const response = await fetch(`${API_URL}/resident-login`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ house_no, password })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    localStorage.setItem("residentUser", JSON.stringify(data.user));
+                    window.location.href = "resident-dashboard.html";
+                } else {
+                    alert("❌ " + data.message);
+                }
+            } catch (err) {
+                alert("❌ Connection error! Server is down.");
+            } finally {
+                btn.innerHTML = 'Login to Portal <i class="fa fa-arrow-right"></i>';
+            }
+        };
+
+        // --- SEND OTP ---
+        async function sendOTP() {
+            const house = document.getElementById('setupHouse').value;
+            const phone = document.getElementById('setupPhone').value;
+            const btn = document.getElementById('otpBtn');
+
+            if (!house || !phone) return alert("Fill all details");
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Sending...';
+
+            try {
+                const res = await fetch(`${API_URL}/send-registration-otp`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ house_no: house, phone_no: phone })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('otpStep1').style.display = 'none';
+                    document.getElementById('otpStep2').style.display = 'block';
+                } else {
+                    alert("❌ " + data.message);
+                }
+            } catch (e) { alert("Server error!"); }
+            finally { btn.disabled = false; btn.innerHTML = 'Get Verification Code <i class="fa fa-paper-plane"></i>'; }
+        }
+
+        // --- VERIFY & REGISTER ---
+        async function verifyAndFinish() {
+            const house = document.getElementById('setupHouse').value;
+            const phone = document.getElementById('setupPhone').value;
+            const otp = document.getElementById('inputOTP').value;
+            const pass = document.getElementById('newPass').value;
+            const btn = document.getElementById('verifyBtn');
+
+            if (!otp || !pass) return alert("Fill all fields");
+
+            btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Verifying...';
+
+            try {
+                const res = await fetch(`${API_URL}/verify-and-register`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ house_no: house, phone_no: phone, otp, password: pass })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert("🎉 Account Created Successfully! Now Login.");
+                    location.reload();
+                } else {
+                    alert("❌ " + data.message);
+                }
+            } catch (e) { alert("Verification failed!"); }
+            finally { btn.innerHTML = 'Verify & Create Account <i class="fa fa-check-circle"></i>'; }
+        }
+    </script>
+</body>
+</html>
