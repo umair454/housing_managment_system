@@ -14,7 +14,7 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// --- OTP Store ---
+// --- OTP Store (Temporary memory for verification) ---
 let otpStore = {}; 
 
 // --- WhatsApp Setup (Updated for Cloud/Render) ---
@@ -22,6 +22,8 @@ const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: { 
         headless: true,
+        // Render ke liye executable path zaroori hai
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || null,
         args: [
             '--no-sandbox', 
             '--disable-setuid-sandbox',
@@ -96,16 +98,13 @@ const uploadComplaint = multer({ storage: complaintStorage });
 const db = mysql.createConnection({
     host: 'bcn6nttd4iqcyvor6fen-mysql.services.clever-cloud.com',
     user: 'urswjb8boqyaorkn',
-    password: 'kDCJigQkNUXvq7maTQ5Y', // Dashboard se password copy karke yahan likhein
+    password: 'kDCJigQkNUXvq7maTQ5Y', 
     database: 'bcn6nttd4iqcyvor6fen',
     port: 3306
 });
 
 db.connect(err => {
-    if (err) { 
-        console.error('❌ Connection Failed!', err.message); 
-        return; 
-    }
+    if (err) { console.error('❌ Connection Failed!', err.message); return; }
     console.log('✅ Connected to Clever Cloud Database!');
     
     db.query("SET SQL_SAFE_UPDATES = 0", (safeErr) => {
@@ -488,6 +487,7 @@ app.post('/resident-login', (req, res) => {
 });
 
 // --- SERVER START ---
+// Render port handle karne ke liye process.env.PORT use kiya
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
