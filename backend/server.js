@@ -17,12 +17,12 @@ app.use(bodyParser.json());
 // --- OTP Store (Temporary memory for verification) ---
 let otpStore = {}; 
 
-// --- WhatsApp Setup (Updated for Cloud/Render) ---
+// --- WhatsApp Setup (Updated for Cloud/Render and Localhost) ---
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: { 
         headless: true,
-        // Render ke liye executable path zaroori hai
+        // Yeh line important hai: Local par null use karega, Render par Environment Variable
         executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || null,
         args: [
             '--no-sandbox', 
@@ -31,7 +31,6 @@ const client = new Client({
             '--no-zygote'
         ] 
     },
-    // Yeh line Render par cache error khatam karegi
     webVersionCache: {
         type: 'remote',
         remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-js/main/dist/wppconnect-wa.js',
@@ -415,68 +414,6 @@ app.put('/complete-task/:id', uploadComplaint.single('completion_photo'), (req, 
     });
 });
 
-// --- EXPENSE MANAGEMENT ---
-app.post('/add-expense', (req, res) => {
-    const { title, category, amount, expense_date, description } = req.body;
-    const sql = "INSERT INTO expenses (title, category, amount, expense_date, description) VALUES (?, ?, ?, ?, ?)";
-    db.query(sql, [title, category, amount, expense_date, description], (err) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ success: true, message: "Expense recorded successfully!" });
-    });
-});
-
-app.get('/all-expenses', (req, res) => {
-    db.query("SELECT * FROM expenses ORDER BY expense_date DESC", (err, data) => {
-        if (err) return res.status(500).json(err);
-        res.json(data);
-    });
-});
-
-// --- FINANCIAL SUMMARY ---
-app.get('/financial-summary', (req, res) => {
-    const sql = `
-        SELECT 
-            (SELECT SUM(amount) FROM bills WHERE payment_status = 'Paid') as total_income,
-            (SELECT SUM(amount) FROM expenses) as total_expense
-    `;
-    db.query(sql, (err, result) => {
-        if (err) return res.status(500).json(err);
-        const income = parseFloat(result[0].total_income || 0);
-        const expense = parseFloat(result[0].total_expense || 0);
-        res.json({ income, expense, balance: (income - expense) });
-    });
-});
-
-// --- RESIDENT ROUTES ---
-app.post('/send-registration-otp', (req, res) => {
-    const phone_no = req.body.phone_no ? req.body.phone_no.trim() : "";
-    const sql = "SELECT * FROM residents WHERE LOWER(house_no) = LOWER(?) AND phone_no = ?";
-    db.query(sql, [req.body.house_no, phone_no], (err, result) => {
-        if (err) return res.status(500).json({ success: false });
-        if (result.length > 0) {
-            const otp = Math.floor(100000 + Math.random() * 900000);
-            otpStore[phone_no] = otp; 
-            sendWhatsApp(phone_no, `🔐 *HMS Code:* ${otp}`);
-            res.json({ success: true, message: "OTP Sent!" });
-        } else {
-            res.status(404).json({ success: false, message: "Not Found" });
-        }
-    });
-});
-
-app.post('/verify-and-register', (req, res) => {
-    const { phone_no, otp, password, house_no } = req.body;
-    if (otpStore[phone_no] == otp) {
-        db.query("UPDATE residents SET password = ? WHERE LOWER(house_no) = LOWER(?) AND phone_no = ?", [password, house_no, phone_no], (err) => {
-            if (err) return res.status(500).json({ success: false });
-            delete otpStore[phone_no]; 
-            res.json({ success: true });
-        });
-    } else {
-        res.status(400).json({ success: false });
-    }
-});
-
 app.post('/resident-login', (req, res) => {
     const sql = "SELECT * FROM residents WHERE LOWER(house_no) = LOWER(?) AND password = ?";
     db.query(sql, [req.body.house_no, req.body.password], (err, result) => {
@@ -487,7 +424,6 @@ app.post('/resident-login', (req, res) => {
 });
 
 // --- SERVER START ---
-// Render port handle karne ke liye process.env.PORT use kiya
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
