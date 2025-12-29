@@ -28,9 +28,12 @@ const client = new Client({
             '--no-sandbox', 
             '--disable-setuid-sandbox',
             '--disable-dev-shm-usage',
-            '--no-zygote'
+            '--no-zygote',
+            '--disable-extensions', // Cloud fix
+            '--disable-gpu'         // Cloud fix
         ] 
     },
+    // WebVersion fix taake Null reading error na aaye
     webVersionCache: {
         type: 'remote',
         remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-js/main/dist/wppconnect-wa.js',
@@ -49,6 +52,7 @@ client.on('ready', () => {
     console.log('✅ WhatsApp is Ready and Connected!');
 });
 
+// Init Error handling
 client.initialize().catch(err => console.log("WhatsApp Init Error:", err));
 
 async function sendWhatsApp(toPhone, message) {
@@ -298,92 +302,6 @@ app.put('/update-bill-status/:id', (req, res) => {
     db.query("UPDATE bills SET payment_status = ? WHERE bill_id = ?", [req.body.status, req.params.id], (err) => {
         if (err) return res.status(500).json(err);
         return res.json({ message: "Status Updated!" });
-    });
-});
-
-// --- ADMIN: DASHBOARD STATS ---
-app.get('/dashboard-stats', (req, res) => {
-    db.query("SELECT COUNT(*) AS total FROM residents", (err, result) => {
-        if (err) return res.status(500).json(err);
-        return res.json(result[0]);
-    });
-});
-
-app.get('/pending-bills-sum', (req, res) => {
-    db.query("SELECT SUM(amount) AS total_pending FROM bills WHERE payment_status = 'Unpaid'", (err, result) => {
-        if (err) return res.status(500).json(err);
-        return res.json({ total_pending: result[0].total_pending || 0 });
-    });
-});
-
-app.get('/complaints-count', (req, res) => {
-    db.query("SELECT COUNT(*) AS total FROM complaints WHERE status = 'Pending' AND house_no != 'All'", (err, result) => {
-        if (err) return res.status(500).json(err);
-        return res.json(result[0]);
-    });
-});
-
-// --- UPGRADED ADMIN: COMPLAINTS & STAFF ASSIGNMENT ---
-app.post('/add-complaint-with-photo', uploadComplaint.single('photo'), (req, res) => {
-    const { resident_name, house_no, category, description } = req.body;
-    const photo = req.file ? req.file.filename : null;
-    const sql = "INSERT INTO complaints (resident_name, house_no, category, description, status, complaint_photo) VALUES (?, ?, ?, ?, 'Pending', ?)";
-    db.query(sql, [resident_name, house_no, category, description, photo], (err) => {
-        if (err) return res.status(500).json({ error: err.message });
-        return res.json({ message: "Complaint filed successfully with photo!" });
-    });
-});
-
-app.put('/assign-staff/:id', (req, res) => {
-    const { staff_name } = req.body;
-    db.query("SELECT phone_no FROM staff WHERE name = ?", [staff_name], (err, staffData) => {
-        if (!err && staffData.length > 0) {
-            const msg = `🛠️ *New Task Assigned*\n\nHello *${staff_name}*,\nYou have been assigned a new maintenance task. Please login to your portal to check details.`;
-            sendWhatsApp(staffData[0].phone_no, msg);
-        }
-    });
-    const sql = "UPDATE complaints SET assigned_staff = ? WHERE id = ?";
-    db.query(sql, [staff_name, req.params.id], (err) => {
-        if (err) return res.status(500).json(err);
-        return res.json({ message: "Staff Assigned Successfully & Notified!" });
-    });
-});
-
-app.get('/complaints', (req, res) => {
-    db.query("SELECT * FROM complaints WHERE house_no != 'All' ORDER BY id DESC", (err, data) => {
-        if (err) return res.status(500).json(err);
-        return res.json(data);
-    });
-});
-
-app.put('/update-complaint-status/:id', (req, res) => {
-    db.query("UPDATE complaints SET status = ? WHERE id = ?", [req.body.status, req.params.id], (err) => {
-        if (err) return res.status(500).json(err);
-        return res.json({ message: "Updated!" });
-    });
-});
-
-// --- STAFF MANAGEMENT ROUTES ---
-app.get('/all-staff', (req, res) => {
-    db.query("SELECT * FROM staff ORDER BY id DESC", (err, data) => {
-        if (err) return res.status(500).json({ error: "Internal Server Error" });
-        res.status(200).json(data);
-    });
-});
-
-app.post('/add-staff', (req, res) => {
-    const { name, phone_no, category, password } = req.body;
-    const sql = "INSERT INTO staff (name, phone_no, category, password) VALUES (?, ?, ?, ?)";
-    db.query(sql, [name, phone_no, category, password], (err, result) => {
-        if (err) return res.status(500).json({ error: "Database Error" });
-        res.status(200).json({ success: true, message: "Staff Added Successfully!", id: result.insertId });
-    });
-});
-
-app.delete('/delete-staff/:id', (req, res) => {
-    db.query("DELETE FROM staff WHERE id = ?", [req.params.id], (err) => {
-        if (err) return res.status(500).json({ error: "Could not delete staff" });
-        res.status(200).json({ success: true, message: "Staff Removed!" });
     });
 });
 
